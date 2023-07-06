@@ -1,12 +1,17 @@
 #include <vector>
+#include <memory>
 
-class linear_regression {
+class Linear_Regression {
     private:
         float w, b;
-        std::vector<float> x, y;
+        std::unique_ptr<std::vector<float>> x_data, y_data;
 
     public:
-        float predict();
+    
+        float predict(float x);
         void add_training_data(float x, float y);
-        void run_MSE();
+        float run_MSE();
+        Linear_Regression();
+        Linear_Regression(std::vector<float> initial_x_data, std::vector<float> initial_y_data);
+        Linear_Regression(std::vector<float> initial_x_data, std::vector<float> initial_y_data, float w, float b);
 };
