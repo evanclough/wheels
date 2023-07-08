@@ -3,15 +3,26 @@
 
 class Linear_Regression {
     private:
-        float w, b;
-        std::unique_ptr<std::vector<float>> x_data, y_data;
+        int input_dim, training_data_size;
+        std::unique_ptr<std::vector<float>> parameters;
+        std::unique_ptr<std::vector<std::vector<float>>> input_data;
+        std::unique_ptr<std::vector<float>> output_data;
 
     public:
-    
-        float predict(float x);
-        void add_training_data(float x, float y);
-        float run_MSE();
+        //constructors
         Linear_Regression();
-        Linear_Regression(std::vector<float> initial_x_data, std::vector<float> initial_y_data);
-        Linear_Regression(std::vector<float> initial_x_data, std::vector<float> initial_y_data, float w, float b);
+        Linear_Regression(std::vector<std::vector<float>> initial_input_data, std::vector<float> initial_output_data);
+        Linear_Regression(std::vector<std::vector<float>> initial_input_data, std::vector<float> initial_output_data, std::vector<float> initial_parameters);    
+
+        //assorted utility functions
+
+        //makes inference on input with the current parameters
+        float inference(std::vector<float> input);
+
+        //add training data to dataset
+        void add_training_data(std::vector<std::vector<float>> input_data, std::vector<float> output_data);
+
+        // runs mean squared error on the current data set with current parameters
+        float run_MSE();
+        
 };
