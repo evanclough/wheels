@@ -88,3 +88,35 @@
         //return mean
         return loss_accum / this->training_data_size;
     }
+
+    
+
+    // runs iteration of gradient descent using MSE as cost function given learning rate and current input data
+    void Linear_Regression::gradient_descent(float learning_rate){
+        //start wtih batch size of just one
+        //for each feature-label pair we currently have in the data set, get the predicted value
+        std::vector<float> predicted_values;
+        for(int i = 0; i < this->training_data_size; i++){
+            //calculate current predicted value for given input, start with just bias
+            float predicted = this->parameters->at(0);
+            for(int j = 1; j < this->input_dim + 1; j++){
+                predicted += this->parameters->at(j) * this->input_data->at(i)->at(j - 1);
+            }
+            predicted_values.push_back(predicted);
+        }
+        
+        //iterate through parameters, adjust according to learning rate multipled by the partial derivative of the loss function
+        for(int i = 0; i < input_dim + 1; i++){
+            float loss_accum = 0;
+            for(int j = 0; j < this->training_data_size; j++){
+                if(i != 0){//for weights
+                    loss_accum += (predicted_values[j] - this->output_data->at(j)) * (this->input_data->at(j)->at(i - 1));
+                }else{//for bias
+                    loss_accum += predicted_values[j] - this->output_data->at(j);
+                }
+            }
+
+            (*(this->parameters))[i] -= learning_rate * (1 / this->training_data_size) * loss_accum; // decrease parameter by learnign rate multiplied by the partial derivative
+        }
+
+    }

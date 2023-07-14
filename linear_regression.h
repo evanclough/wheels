@@ -25,4 +25,6 @@ class Linear_Regression {
         // runs mean squared error on the current data set with current parameters
         float run_MSE();
         
+        // runs iteration of gradient descent using MSE as cost function given learning rate and current input data
+        void gradient_descent(float learning_rate);
 };
