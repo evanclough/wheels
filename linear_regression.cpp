@@ -11,106 +11,157 @@
         this->input_dim = num_params;
         this->model_name = "model";
         this->parameters = std::make_unique<std::vector<float>>(input_dim + 1, 0);
-        this->input_data = std::make_unique<std::vector<std::vector<float>>>();
-        this->output_data = std::make_unique<std::vector<float>>();
+        this->training_input_data = std::make_unique<std::vector<std::vector<float>>>();
+        this->training_output_data = std::make_unique<std::vector<float>>();
         this->training_data_size = 0;
         this->param_names = std::make_unique<std::vector<std::string>>();
     }
 
     //this constructor takes some initial input/output data, but sets parameters to 0 
-    Linear_Regression::Linear_Regression(std::string model_name, std::vector<std::vector<float>> initial_input_data, std::vector<float> initial_output_data) {
+    Linear_Regression::Linear_Regression(std::string model_name, std::vector<std::vector<float>> initial_training_input_data, std::vector<float> initial_training_output_data) {
         //check of inputted data to make sure dimensions match up
-        if(initial_input_data.size() != initial_output_data.size()){
+        if(initial_training_input_data.size() != initial_training_output_data.size()){
             throw std::invalid_argument("Input data size does not match output data size.");
         }
 
         //check if input data all same size
         int size_check = -1;
-        for(int i = 0; i < initial_input_data.size(); i++){
-            if(initial_input_data[i].size() != size_check && size_check != -1){
+        for(int i = 0; i < initial_training_input_data.size(); i++){
+            if(initial_training_input_data[i].size() != size_check && size_check != -1){
                 throw std::invalid_argument("All input data must be of same dimension");
             }
-            size_check = initial_input_data[i].size();
+            size_check = initial_training_input_data[i].size();
         }
         
 
         //once all good set attributes
-        this->model_name = model_name;
-        this->input_dim = initial_input_data[0].size();
+        this->model_name = model_name == "" ? "Model" : model_name;
+        this->input_dim = initial_training_input_data[0].size();
         this->parameters = std::make_unique<std::vector<float>>(input_dim + 1, 0);
-        this->input_data = std::make_unique<std::vector<std::vector<float>>>(initial_input_data);
-        this->output_data = std::make_unique<std::vector<float>>(initial_output_data);
-        this->training_data_size = this->output_data->size();
+        this->training_input_data = std::make_unique<std::vector<std::vector<float>>>(initial_training_input_data);
+        this->training_output_data = std::make_unique<std::vector<float>>(initial_training_output_data);
+        this->training_data_size = this->training_output_data->size();
         this->param_names = std::make_unique<std::vector<std::string>>();
     }
 
     //constructor same as above but takes in param_names vector
-    Linear_Regression::Linear_Regression(std::string model_name, std::vector<std::vector<float>> initial_input_data, std::vector<float> initial_output_data, std::vector<std::string> param_names){
+    Linear_Regression::Linear_Regression(std::string model_name, std::vector<std::vector<float>> initial_training_input_data, std::vector<float> initial_training_output_data, std::vector<std::string> param_names){
         //to use this constructor you must pass in some example data
-        if(initial_input_data.size() == 0){
+        if(initial_training_input_data.size() == 0){
             throw std::invalid_argument("Initial training data vector must not be empty.");
         }
         
         //check of inputted data to make sure dimensions match up
-        if(initial_input_data.size() != initial_output_data.size()){
+        if(initial_training_input_data.size() != initial_training_output_data.size()){
             throw std::invalid_argument("Input data size does not match output data size.");
         }
 
         //check if input data all same size
         int size_check = -1;
-        for(int i = 0; i < initial_input_data.size(); i++){
-            if(initial_input_data[i].size() != size_check && size_check != -1){
+        for(int i = 0; i < initial_training_input_data.size(); i++){
+            if(initial_training_input_data[i].size() != size_check && size_check != -1){
                 throw std::invalid_argument("All input data must be of same dimension");
             }
-            size_check = initial_input_data[i].size();
+            size_check = initial_training_input_data[i].size();
         }
         
         //check if param names is appropriate size
-        if(param_names.size() != initial_input_data[0].size()){
+        if(param_names.size() != initial_training_input_data[0].size()){
             throw std::invalid_argument("Number of parameter names passed in does not match number of parameters.");
         }
 
-        this->model_name = model_name;
-        this->input_dim = initial_input_data[0].size();
+        this->model_name = model_name == "" ? "Model" : model_name;
+        this->input_dim = initial_training_input_data[0].size();
         this->parameters = std::make_unique<std::vector<float>>(input_dim + 1, 0);
-        this->input_data = std::make_unique<std::vector<std::vector<float>>>(initial_input_data);
-        this->output_data = std::make_unique<std::vector<float>>(initial_output_data);
-        this->training_data_size = this->output_data->size();
+        this->training_input_data = std::make_unique<std::vector<std::vector<float>>>(initial_training_input_data);
+        this->training_output_data = std::make_unique<std::vector<float>>(initial_training_output_data);
+        this->training_data_size = this->training_output_data->size();
+        this->param_names = std::make_unique<std::vector<std::string>>(param_names);
+    }
+
+    // this constructor takes initial training data and initial test data and param names
+    Linear_Regression::Linear_Regression(std::string model_name, std::vector<std::vector<float>> initial_training_input_data, std::vector<float> initial_training_output_data, std::vector<std::vector<float>> initial_test_input_data, std::vector<float> initial_test_output_data, std::vector<std::string> param_names){
+        //to use this constructor you must pass in some example training and test data
+        if(initial_training_input_data.size() == 0){
+            throw std::invalid_argument("Initial training data vector must not be empty.");
+        }
+        if(initial_test_input_data.size() == 0){
+            throw std::invalid_argument("Initial test data vector must not be empty.");
+        }
+        
+        //check of training and test input data to make sure dimensions match up
+        if(initial_training_input_data.size() != initial_training_output_data.size()){
+            throw std::invalid_argument("Training input data size does not match training output data size.");
+        }
+        if(initial_test_input_data.size() != initial_test_output_data.size()){
+            throw std::invalid_argument("Test input data size does not match test output data size.");
+        }
+
+        //check if training and test input data all same size
+        int size_check = -1;
+        for(int i = 0; i < initial_training_input_data.size(); i++){
+            if(initial_training_input_data[i].size() != size_check && size_check != -1){
+                throw std::invalid_argument("All input data must be of same dimension");
+            }
+            size_check = initial_training_input_data[i].size();
+        }
+        size_check = -1;
+        for(int i = 0; i < initial_test_input_data.size(); i++){
+            if(initial_test_input_data[i].size() != size_check && size_check != -1){
+                throw std::invalid_argument("All input data must be of same dimension");
+            }
+            size_check = initial_test_input_data[i].size();
+        }
+        
+        //check if param names is appropriate size
+        if(param_names.size() != initial_training_input_data[0].size()){
+            throw std::invalid_argument("Number of parameter names passed in does not match number of parameters.");
+        }
+
+        this->model_name = model_name == "" ? "Model" : model_name;
+        this->input_dim = initial_training_input_data[0].size();
+        this->parameters = std::make_unique<std::vector<float>>(input_dim + 1, 0);
+        this->training_input_data = std::make_unique<std::vector<std::vector<float>>>(initial_training_input_data);
+        this->training_output_data = std::make_unique<std::vector<float>>(initial_training_output_data);
+        this->training_data_size = this->training_output_data->size();
+        this->test_input_data = std::make_unique<std::vector<std::vector<float>>>(initial_test_input_data);
+        this->test_output_data = std::make_unique<std::vector<float>>(initial_test_output_data);
+        this->test_data_size = this->test_output_data->size();
         this->param_names = std::make_unique<std::vector<std::string>>(param_names);
     }
 
     //this constructor takes some initial input/output data, and some intiial parameters
-    Linear_Regression::Linear_Regression(std::string model_name, std::vector<std::vector<float>> initial_input_data, std::vector<float> initial_output_data, std::vector<float> initial_parameters){
+    Linear_Regression::Linear_Regression(std::string model_name, std::vector<std::vector<float>> initial_training_input_data, std::vector<float> initial_training_output_data, std::vector<float> initial_parameters){
         //to use this constructor you must pass in some example data
-        if(initial_input_data.size() == 0){
+        if(initial_training_input_data.size() == 0){
             throw std::invalid_argument("Initial training data vector must not be empty.");
         }
         
         //check of inputted data to make sure dimensions match up
-        if(initial_input_data.size() != initial_output_data.size()){
+        if(initial_training_input_data.size() != initial_training_output_data.size()){
             throw std::invalid_argument("Input data size does not match output data size.");
         }
 
         //check if input data all same size
         int size_check = -1;
-        for(int i = 0; i < initial_input_data.size(); i++){
-            if(initial_input_data[i].size() != size_check && size_check != -1){
+        for(int i = 0; i < initial_training_input_data.size(); i++){
+            if(initial_training_input_data[i].size() != size_check && size_check != -1){
                 throw std::invalid_argument("All input data must be of same dimension");
             }
-            size_check = initial_input_data[i].size();
+            size_check = initial_training_input_data[i].size();
         }
         
         //check if initial param array is appropriate size
-        if(initial_parameters.size() != initial_input_data[0].size()){
+        if(initial_parameters.size() != initial_training_input_data[0].size()){
             throw std::invalid_argument("Number of parameters passed in must be equal to number of parameters indicated by input data size.");
         }
 
-        this->model_name = model_name;
-        this->input_dim = initial_input_data[0].size();
+        this->model_name = model_name == "" ? "Model" : model_name;
+        this->input_dim = initial_training_input_data[0].size();
         this->parameters = std::make_unique<std::vector<float>>(initial_parameters);
-        this->input_data = std::make_unique<std::vector<std::vector<float>>>(initial_input_data);
-        this->output_data = std::make_unique<std::vector<float>>(initial_output_data);
-        this->training_data_size = this->output_data->size();
+        this->training_input_data = std::make_unique<std::vector<std::vector<float>>>(initial_training_input_data);
+        this->training_output_data = std::make_unique<std::vector<float>>(initial_training_output_data);
+        this->training_data_size = this->training_output_data->size();
         this->param_names = std::make_unique<std::vector<std::string>>();
     }
 
@@ -129,7 +180,7 @@
         return accum;
     }
 
-    //add input data to dataset
+    //add training data to dataset
     void Linear_Regression::add_training_data(std::vector<std::vector<float>> input_data, std::vector<float> output_data) {
         //input dimension size check
         for(std::vector<float> datum : input_data){
@@ -146,30 +197,73 @@
 
         //add data
         for(int i = 0; i < input_data.size(); i++){
-            this->input_data->push_back(input_data[i]);
-            this->output_data->push_back(output_data[i]);
+            this->training_input_data->push_back(input_data[i]);
+            this->training_output_data->push_back(output_data[i]);
         }
         this->training_data_size += output_data.size();
     }
 
-    // runs mean squared error on the current data set with current parameters
-    float Linear_Regression::run_MSE() {
-        float loss_accum = 0;
-        std::vector<float> current_inferences = {};
+    //add test data to dataset
+    void Linear_Regression::add_test_data(std::vector<std::vector<float>> input_data, std::vector<float> output_data) {
+        //input dimension size check
+        for(std::vector<float> datum : input_data){
+            if(datum.size() != input_dim){
+                std::cout << "Error: expected input data dimension: " << input_dim << ". Received input data dimension: " << input_data.size() << "\n";
+                return;
+            }
+        }
 
-        //gather current inferences
-        for(std::vector<float> input_datum : *(this->input_data)){
-            current_inferences.push_back(this->inference(input_datum));
+        //input/output data size match check
+        if(input_data.size() != output_data.size()){
+            std::cout << "Error: input size doesn't match output size." << "\n";
+        }
+
+        //add data
+        for(int i = 0; i < input_data.size(); i++){
+            this->test_input_data->push_back(input_data[i]);
+            this->test_output_data->push_back(output_data[i]);
+        }
+        this->test_data_size += output_data.size();
+    }
+
+    // runs mean squared error on the given data set with current parameters
+    float Linear_Regression::run_MSE(Dataset ds) {
+        if(ds == Dataset::TRAINING){
+            float loss_accum = 0;
+            std::vector<float> current_inferences = {};
+
+            //gather current inferences
+            for(std::vector<float> input_datum : *(this->training_input_data)){
+                current_inferences.push_back(this->inference(input_datum));
+            }
+            
+            //run through and accumulate MSE loss
+            for(int i = 0; i < this->training_data_size; i++){
+                float squared_loss = (current_inferences[i] - this->training_output_data->at(i)) * (current_inferences[i] - this->training_output_data->at(i));
+                loss_accum += squared_loss;
+            }
+
+            //return mean
+            return loss_accum / this->training_data_size;
+        }else {
+            float loss_accum = 0;
+            std::vector<float> current_inferences = {};
+
+            //gather current inferences
+            for(std::vector<float> input_datum : *(this->test_input_data)){
+                current_inferences.push_back(this->inference(input_datum));
+            }
+            
+            //run through and accumulate MSE loss
+            for(int i = 0; i < this->test_data_size; i++){
+                float squared_loss = (current_inferences[i] - this->test_output_data->at(i)) * (current_inferences[i] - this->test_output_data->at(i));
+                loss_accum += squared_loss;
+            }
+
+            //return mean
+            return loss_accum / this->test_data_size;
         }
         
-        //run through and accumulate MSE loss
-        for(int i = 0; i < this->training_data_size; i++){
-            float squared_loss = (current_inferences[i] - this->output_data->at(i)) * (current_inferences[i] - this->output_data->at(i));
-            loss_accum += squared_loss;
-        }
-
-        //return mean
-        return loss_accum / this->training_data_size;
     }
 
     
@@ -183,7 +277,7 @@
             //calculate current predicted value for given input, start with just bias
             float predicted = this->parameters->at(0);
             for(int j = 1; j < this->input_dim + 1; j++){
-                predicted += this->parameters->at(j) * this->input_data->at(i)[j - 1];
+                predicted += this->parameters->at(j) * this->training_input_data->at(i)[j - 1];
             }
             predicted_values.push_back(predicted);
         }
@@ -193,9 +287,9 @@
             float loss_accum = 0;
             for(int j = 0; j < this->training_data_size; j++){
                 if(i != 0){//for weights
-                    loss_accum += (predicted_values[j] - this->output_data->at(j)) * (this->input_data->at(j)[i - 1]);
+                    loss_accum += (predicted_values[j] - this->training_output_data->at(j)) * (this->training_input_data->at(j)[i - 1]);
                 }else{//for bias
-                    loss_accum += predicted_values[j] - this->output_data->at(j);
+                    loss_accum += predicted_values[j] - this->training_output_data->at(j);
                 }
             }
 
@@ -205,7 +299,7 @@
     }
 
     void Linear_Regression::train_model(float learning_rate, int epochs){
-        std::cout << "Training model with learning_rate = " << learning_rate << " for " << epochs << " epochs..." << std::endl << std::endl;
+        std::cout << "Training " << this->model_name << " with learning_rate = " << learning_rate << " for " << epochs << " epochs..." << std::endl << std::endl;
         for(int i = 0; i < epochs; i++){
             std::cout << "Epoch " << i << ": " << std::endl;
 
@@ -224,9 +318,16 @@
                     std::cout << this->param_names->at(i - 1) << ": " << old_params[i] << " => " << new_params[i] << std::endl;
                 }
             }
-            std::cout << "Loss: " << this->run_MSE() << std::endl;
+            std::cout << "Training Loss: " << this->run_MSE(Dataset::TRAINING) << std::endl;
             std::cout << std::endl;
         }
+    }
+
+    //test model on current test data
+    void Linear_Regression::test_model(){
+        std::cout << "Testing " << this->model_name << "..." << std::endl;
+        float test_loss = this->run_MSE(Dataset::TEST);
+        std::cout << "Test Loss: " << test_loss << std::endl;
     }
 
     //prints params of model
