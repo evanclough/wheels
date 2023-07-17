@@ -122,8 +122,21 @@
     }
 
     void Linear_Regression::train_model(float learning_rate, int epochs){
+        std::cout << "Training model with learning_rate = " << learning_rate << " for " << epochs << " epochs..." << std::endl;
         for(int i = 0; i < epochs; i++){
+            std::cout << "Epoch " << i << ": " << std::endl;
+
+            //run gradient descent with given learning rate 
+
+            std::vector<float> old_params(*(this->parameters));
             this->gradient_descent(learning_rate);
+            std::vector<float> new_params(*(this->parameters));
+            
+            //print changes in parameters for each epoch
+            std::cout << "Bias: " << old_params[0] << " => "  << new_params[0] << std::endl;
+            for(int i = 1; i < input_dim + 1; i++){
+                std::cout << "Param " << i << ": " << old_params[i] << " => " << new_params[i] << std::endl;
+            }
         }
     }
 
