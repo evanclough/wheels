@@ -34,14 +34,14 @@
     //makes inference on input with the current parameters
     float Linear_Regression::inference(std::vector<float> input) {
         //check if input is correct size, return null and tell them if not.
-        if(input.size() != input_dim - 1){
-            std::cout << "Error: expected input data dimension: " << input_dim - 1 << ". Received input data dimension: " << input.size();
+        if(input.size() != input_dim){
+            std::cout << "Error: expected input data dimension: " << input_dim << ". Received input data dimension: " << input.size();
             return -1.0;
         }
 
         float accum = this->parameters->at(0);
-        for(int i = 1; i <= input_dim; i++){
-            accum += this->parameters->at(i) * input[i];
+        for(int i = 0; i < input_dim; i++){
+            accum += this->parameters->at(i + 1) * input[i];
         }
         return accum;
     }
@@ -50,8 +50,8 @@
     void Linear_Regression::add_training_data(std::vector<std::vector<float>> input_data, std::vector<float> output_data) {
         //input dimension size check
         for(std::vector<float> datum : input_data){
-            if(datum.size() != input_dim - 1){
-                std::cout << "Error: expected input data dimension: " << input_dim - 1 << ". Received input data dimension: " << input_data.size() << "\n";
+            if(datum.size() != input_dim){
+                std::cout << "Error: expected input data dimension: " << input_dim << ". Received input data dimension: " << input_data.size() << "\n";
                 return;
             }
         }
@@ -122,7 +122,7 @@
     }
 
     void Linear_Regression::train_model(float learning_rate, int epochs){
-        std::cout << "Training model with learning_rate = " << learning_rate << " for " << epochs << " epochs..." << std::endl;
+        std::cout << "Training model with learning_rate = " << learning_rate << " for " << epochs << " epochs..." << std::endl << std::endl;
         for(int i = 0; i < epochs; i++){
             std::cout << "Epoch " << i << ": " << std::endl;
 
@@ -137,6 +137,8 @@
             for(int i = 1; i < input_dim + 1; i++){
                 std::cout << "Param " << i << ": " << old_params[i] << " => " << new_params[i] << std::endl;
             }
+            std::cout << "Loss: " << this->run_MSE() << std::endl;
+            std::cout << std::endl;
         }
     }
 
@@ -148,4 +150,5 @@
         for(int i = 1; i < input_dim + 1; i++){
             std::cout << "Param " << i << ": " << this->parameters->at(i) << std::endl;
         }
+        
     }
