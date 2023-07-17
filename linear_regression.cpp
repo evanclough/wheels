@@ -2,12 +2,14 @@
 #include <memory>
 #include <iostream>
 #include <string>
+#include <stdexcept>
 #include "Linear_Regression.h"
 
     //constructors
-    //default constructor defaults to input dim of 1, parameters set to 0, and no input/output data.
-    Linear_Regression::Linear_Regression() {
-        this->input_dim = 1;
+    //basic constructor only takes numbero of parameters
+    Linear_Regression::Linear_Regression(int num_params) {
+        this->input_dim = num_params;
+        this->model_name = "model";
         this->parameters = std::make_unique<std::vector<float>>(input_dim + 1, 0);
         this->input_data = std::make_unique<std::vector<std::vector<float>>>();
         this->output_data = std::make_unique<std::vector<float>>();
@@ -16,7 +18,24 @@
     }
 
     //this constructor takes some initial input/output data, but sets parameters to 0 
-    Linear_Regression::Linear_Regression(std::vector<std::vector<float>> initial_input_data, std::vector<float> initial_output_data) {
+    Linear_Regression::Linear_Regression(std::string model_name, std::vector<std::vector<float>> initial_input_data, std::vector<float> initial_output_data) {
+        //check of inputted data to make sure dimensions match up
+        if(initial_input_data.size() != initial_output_data.size()){
+            throw std::invalid_argument("Input data size does not match output data size.");
+        }
+
+        //check if input data all same size
+        int size_check = -1;
+        for(int i = 0; i < initial_input_data.size(); i++){
+            if(initial_input_data[i].size() != size_check && size_check != -1){
+                throw std::invalid_argument("All input data must be of same dimension");
+            }
+            size_check = initial_input_data[i].size();
+        }
+        
+
+        //once all good set attributes
+        this->model_name = model_name;
         this->input_dim = initial_input_data[0].size();
         this->parameters = std::make_unique<std::vector<float>>(input_dim + 1, 0);
         this->input_data = std::make_unique<std::vector<std::vector<float>>>(initial_input_data);
@@ -26,7 +45,32 @@
     }
 
     //constructor same as above but takes in param_names vector
-    Linear_Regression::Linear_Regression(std::vector<std::vector<float>> initial_input_data, std::vector<float> initial_output_data, std::vector<std::string> param_names){
+    Linear_Regression::Linear_Regression(std::string model_name, std::vector<std::vector<float>> initial_input_data, std::vector<float> initial_output_data, std::vector<std::string> param_names){
+        //to use this constructor you must pass in some example data
+        if(initial_input_data.size() == 0){
+            throw std::invalid_argument("Initial training data vector must not be empty.");
+        }
+        
+        //check of inputted data to make sure dimensions match up
+        if(initial_input_data.size() != initial_output_data.size()){
+            throw std::invalid_argument("Input data size does not match output data size.");
+        }
+
+        //check if input data all same size
+        int size_check = -1;
+        for(int i = 0; i < initial_input_data.size(); i++){
+            if(initial_input_data[i].size() != size_check && size_check != -1){
+                throw std::invalid_argument("All input data must be of same dimension");
+            }
+            size_check = initial_input_data[i].size();
+        }
+        
+        //check if param names is appropriate size
+        if(param_names.size() != initial_input_data[0].size()){
+            throw std::invalid_argument("Number of parameter names passed in does not match number of parameters.");
+        }
+
+        this->model_name = model_name;
         this->input_dim = initial_input_data[0].size();
         this->parameters = std::make_unique<std::vector<float>>(input_dim + 1, 0);
         this->input_data = std::make_unique<std::vector<std::vector<float>>>(initial_input_data);
@@ -36,7 +80,32 @@
     }
 
     //this constructor takes some initial input/output data, and some intiial parameters
-    Linear_Regression::Linear_Regression(std::vector<std::vector<float>> initial_input_data, std::vector<float> initial_output_data, std::vector<float> initial_parameters){
+    Linear_Regression::Linear_Regression(std::string model_name, std::vector<std::vector<float>> initial_input_data, std::vector<float> initial_output_data, std::vector<float> initial_parameters){
+        //to use this constructor you must pass in some example data
+        if(initial_input_data.size() == 0){
+            throw std::invalid_argument("Initial training data vector must not be empty.");
+        }
+        
+        //check of inputted data to make sure dimensions match up
+        if(initial_input_data.size() != initial_output_data.size()){
+            throw std::invalid_argument("Input data size does not match output data size.");
+        }
+
+        //check if input data all same size
+        int size_check = -1;
+        for(int i = 0; i < initial_input_data.size(); i++){
+            if(initial_input_data[i].size() != size_check && size_check != -1){
+                throw std::invalid_argument("All input data must be of same dimension");
+            }
+            size_check = initial_input_data[i].size();
+        }
+        
+        //check if initial param array is appropriate size
+        if(initial_parameters.size() != initial_input_data[0].size()){
+            throw std::invalid_argument("Number of parameters passed in must be equal to number of parameters indicated by input data size.");
+        }
+
+        this->model_name = model_name;
         this->input_dim = initial_input_data[0].size();
         this->parameters = std::make_unique<std::vector<float>>(initial_parameters);
         this->input_data = std::make_unique<std::vector<std::vector<float>>>(initial_input_data);

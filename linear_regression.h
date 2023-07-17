@@ -5,6 +5,7 @@
 class Linear_Regression {
     private:
         int input_dim, training_data_size;
+        std::string model_name;
         std::unique_ptr<std::vector<float>> parameters;
         std::unique_ptr<std::vector<std::vector<float>>> input_data;
         std::unique_ptr<std::vector<float>> output_data;
@@ -12,10 +13,10 @@ class Linear_Regression {
 
     public:
         //constructors
-        Linear_Regression();
-        Linear_Regression(std::vector<std::vector<float>> initial_input_data, std::vector<float> initial_output_data);
-        Linear_Regression(std::vector<std::vector<float>> initial_input_data, std::vector<float> initial_output_data, std::vector<std::string> param_names);
-        Linear_Regression(std::vector<std::vector<float>> initial_input_data, std::vector<float> initial_output_data, std::vector<float> initial_parameters);    
+        Linear_Regression(int num_params);
+        Linear_Regression(std::string model_name, std::vector<std::vector<float>> initial_input_data, std::vector<float> initial_output_data);
+        Linear_Regression(std::string model_name, std::vector<std::vector<float>> initial_input_data, std::vector<float> initial_output_data, std::vector<std::string> param_names);
+        Linear_Regression(std::string model_name, std::vector<std::vector<float>> initial_input_data, std::vector<float> initial_output_data, std::vector<float> initial_parameters);    
 
         //assorted utility functions
 
