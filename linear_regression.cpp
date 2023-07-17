@@ -1,6 +1,7 @@
 #include <vector>
 #include <memory>
 #include <iostream>
+#include <string>
 #include "Linear_Regression.h"
 
     //constructors
@@ -11,6 +12,7 @@
         this->input_data = std::make_unique<std::vector<std::vector<float>>>();
         this->output_data = std::make_unique<std::vector<float>>();
         this->training_data_size = 0;
+        this->param_names = std::make_unique<std::vector<std::string>>();
     }
 
     //this constructor takes some initial input/output data, but sets parameters to 0 
@@ -20,6 +22,17 @@
         this->input_data = std::make_unique<std::vector<std::vector<float>>>(initial_input_data);
         this->output_data = std::make_unique<std::vector<float>>(initial_output_data);
         this->training_data_size = this->output_data->size();
+        this->param_names = std::make_unique<std::vector<std::string>>();
+    }
+
+    //constructor same as above but takes in param_names vector
+    Linear_Regression::Linear_Regression(std::vector<std::vector<float>> initial_input_data, std::vector<float> initial_output_data, std::vector<std::string> param_names){
+        this->input_dim = initial_input_data[0].size();
+        this->parameters = std::make_unique<std::vector<float>>(input_dim + 1, 0);
+        this->input_data = std::make_unique<std::vector<std::vector<float>>>(initial_input_data);
+        this->output_data = std::make_unique<std::vector<float>>(initial_output_data);
+        this->training_data_size = this->output_data->size();
+        this->param_names = std::make_unique<std::vector<std::string>>(param_names);
     }
 
     //this constructor takes some initial input/output data, and some intiial parameters
@@ -29,6 +42,7 @@
         this->input_data = std::make_unique<std::vector<std::vector<float>>>(initial_input_data);
         this->output_data = std::make_unique<std::vector<float>>(initial_output_data);
         this->training_data_size = this->output_data->size();
+        this->param_names = std::make_unique<std::vector<std::string>>();
     }
 
     //makes inference on input with the current parameters
@@ -135,7 +149,11 @@
             //print changes in parameters for each epoch
             std::cout << "Bias: " << old_params[0] << " => "  << new_params[0] << std::endl;
             for(int i = 1; i < input_dim + 1; i++){
-                std::cout << "Param " << i << ": " << old_params[i] << " => " << new_params[i] << std::endl;
+                if(this->param_names->size() == 0){
+                    std::cout << "Param " << i << ": " << old_params[i] << " => " << new_params[i] << std::endl;
+                }else {
+                    std::cout << this->param_names->at(i - 1) << ": " << old_params[i] << " => " << new_params[i] << std::endl;
+                }
             }
             std::cout << "Loss: " << this->run_MSE() << std::endl;
             std::cout << std::endl;
@@ -148,7 +166,12 @@
         std::cout << "Bias: " << this->parameters->at(0) << std::endl;
         //then print parameters
         for(int i = 1; i < input_dim + 1; i++){
-            std::cout << "Param " << i << ": " << this->parameters->at(i) << std::endl;
+            if(this->param_names->size() == 0){
+                std::cout << "Param " << i << ": " << this->parameters->at(i) << std::endl;
+            }else {
+                std::cout << this->param_names->at(i - 1) << ": " << this->parameters->at(i) << std::endl;
+            }
+            
         }
         
     }

@@ -1,5 +1,6 @@
 #include <vector>
 #include <memory>
+#include <string>
 
 class Linear_Regression {
     private:
@@ -7,11 +8,13 @@ class Linear_Regression {
         std::unique_ptr<std::vector<float>> parameters;
         std::unique_ptr<std::vector<std::vector<float>>> input_data;
         std::unique_ptr<std::vector<float>> output_data;
+        std::unique_ptr<std::vector<std::string>> param_names; // if left empty, no names
 
     public:
         //constructors
         Linear_Regression();
         Linear_Regression(std::vector<std::vector<float>> initial_input_data, std::vector<float> initial_output_data);
+        Linear_Regression(std::vector<std::vector<float>> initial_input_data, std::vector<float> initial_output_data, std::vector<std::string> param_names);
         Linear_Regression(std::vector<std::vector<float>> initial_input_data, std::vector<float> initial_output_data, std::vector<float> initial_parameters);    
 
         //assorted utility functions
