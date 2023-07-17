@@ -3,6 +3,9 @@
 #include <iostream>
 #include <string>
 #include <stdexcept>
+#include <algorithm>
+#include <random>
+
 #include "Linear_Regression.h"
 
     //constructors
@@ -298,9 +301,30 @@
 
     }
 
-    void Linear_Regression::train_model(float learning_rate, int epochs){
+    void Linear_Regression::train_model(float learning_rate, int epochs, float validation_split){
+        //first create training/validation split for this training run by picking randomly from training set
+        int val_set_size = validation_split * this->training_data_size;
+        //stuff for generating random index to pull
+        std::random_device rd;
+        std::mt19937 gen(rd());
+
+        std::shuffle(this->training_input_data->begin(), this->training_input_data->end(), gen);
+        std::shuffle(this->training_output_data->begin(), this->training_output_data->end(), gen);
+        for(int i = 0; i < val_set_size; i++){
+            //copy over shuffled first few elements
+            this->validation_input_data->push_back(this->training_input_data->at(i));
+            this->validation_output_data->push_back(this->training_output_data->at(i));
+        }
+        //remove from training set
+        this->training_input_data->erase(this->training_input_data->begin(), this->training_input_data->begin() + val_set_size);
+        this->training_output_data->erase(this->training_output_data->begin(), this->training_output_data->begin() + val_set_size);
+
         std::cout << "Training " << this->model_name << " with learning_rate = " << learning_rate << " for " << epochs << " epochs..." << std::endl << std::endl;
         for(int i = 0; i < epochs; i++){
+            //first shuffle training data
+            std::shuffle(this->training_input_data->begin(), this->training_input_data->end(), gen);
+            std::shuffle(this->training_output_data->begin(), this->training_output_data->end(), gen);
+
             std::cout << "Epoch " << i << ": " << std::endl;
 
             //run gradient descent with given learning rate 
@@ -321,6 +345,14 @@
             std::cout << "Training Loss: " << this->run_MSE(Dataset::TRAINING) << std::endl;
             std::cout << std::endl;
         }
+
+        //put validation data back into training and wipe it
+        for(int i = 0; i < val_set_size; i++){
+            this->training_input_data->push_back(this->validation_input_data->at(i));
+            this->training_output_data->push_back(this->validation_output_data->at(i));
+        }
+        this->validation_input_data = {};
+        this->validation_output_data = {};
     }
 
     //test model on current test data

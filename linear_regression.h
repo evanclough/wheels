@@ -4,7 +4,8 @@
 
 enum class Dataset {
     TRAINING,
-    TEST
+    TEST,
+    VALIDATION
 };
 
 class Linear_Regression {
@@ -16,6 +17,8 @@ class Linear_Regression {
         std::unique_ptr<std::vector<float>> training_output_data;
         std::unique_ptr<std::vector<std::vector<float>>> test_input_data;
         std::unique_ptr<std::vector<float>> test_output_data;
+        std::unique_ptr<std::vector<std::vector<float>>> validation_input_data;
+        std::unique_ptr<std::vector<float>> validation_output_data;
         std::unique_ptr<std::vector<std::string>> param_names; // if left empty, no names
 
     public:
@@ -44,7 +47,7 @@ class Linear_Regression {
         void gradient_descent(float learning_rate);
         
         //trains model via gradient descent, given a number of epochs and a learning rate
-        void train_model(float learning_rate, int epochs);
+        void train_model(float learning_rate, int epochs, float validation_split);
 
         //tests model against provided test data
         void test_model();
