@@ -27,4 +27,10 @@ class Linear_Regression {
         
         // runs iteration of gradient descent using MSE as cost function given learning rate and current input data
         void gradient_descent(float learning_rate);
+        
+        //trains model via gradient descent, given a number of epochs and a learning rate
+        void train_model(float learning_rate, int epochs);
+
+        //prints parameters
+        void print_params();
 };
