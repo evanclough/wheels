@@ -10,7 +10,7 @@ enum class Dataset {
 
 class Linear_Regression {
     private:
-        int input_dim, training_data_size, test_data_size;
+        int input_dim, training_data_size, test_data_size, validation_data_size;
         std::string model_name;
         std::unique_ptr<std::vector<float>> parameters;
         std::unique_ptr<std::vector<std::vector<float>>> training_input_data;

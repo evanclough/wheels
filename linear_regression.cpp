@@ -16,6 +16,10 @@
         this->parameters = std::make_unique<std::vector<float>>(input_dim + 1, 0);
         this->training_input_data = std::make_unique<std::vector<std::vector<float>>>();
         this->training_output_data = std::make_unique<std::vector<float>>();
+        this->test_input_data = std::make_unique<std::vector<std::vector<float>>>();
+        this->test_output_data = std::make_unique<std::vector<float>>();
+        this->validation_input_data = std::make_unique<std::vector<std::vector<float>>>();
+        this->validation_output_data = std::make_unique<std::vector<float>>();
         this->training_data_size = 0;
         this->param_names = std::make_unique<std::vector<std::string>>();
     }
@@ -43,6 +47,10 @@
         this->parameters = std::make_unique<std::vector<float>>(input_dim + 1, 0);
         this->training_input_data = std::make_unique<std::vector<std::vector<float>>>(initial_training_input_data);
         this->training_output_data = std::make_unique<std::vector<float>>(initial_training_output_data);
+        this->test_input_data = std::make_unique<std::vector<std::vector<float>>>();
+        this->test_output_data = std::make_unique<std::vector<float>>();
+        this->validation_input_data = std::make_unique<std::vector<std::vector<float>>>();
+        this->validation_output_data = std::make_unique<std::vector<float>>();
         this->training_data_size = this->training_output_data->size();
         this->param_names = std::make_unique<std::vector<std::string>>();
     }
@@ -79,6 +87,10 @@
         this->training_input_data = std::make_unique<std::vector<std::vector<float>>>(initial_training_input_data);
         this->training_output_data = std::make_unique<std::vector<float>>(initial_training_output_data);
         this->training_data_size = this->training_output_data->size();
+        this->test_input_data = std::make_unique<std::vector<std::vector<float>>>();
+        this->test_output_data = std::make_unique<std::vector<float>>();
+        this->validation_input_data = std::make_unique<std::vector<std::vector<float>>>();
+        this->validation_output_data = std::make_unique<std::vector<float>>();
         this->param_names = std::make_unique<std::vector<std::string>>(param_names);
     }
 
@@ -130,6 +142,8 @@
         this->test_input_data = std::make_unique<std::vector<std::vector<float>>>(initial_test_input_data);
         this->test_output_data = std::make_unique<std::vector<float>>(initial_test_output_data);
         this->test_data_size = this->test_output_data->size();
+        this->validation_input_data = std::make_unique<std::vector<std::vector<float>>>();
+        this->validation_output_data = std::make_unique<std::vector<float>>();
         this->param_names = std::make_unique<std::vector<std::string>>(param_names);
     }
 
@@ -164,6 +178,10 @@
         this->parameters = std::make_unique<std::vector<float>>(initial_parameters);
         this->training_input_data = std::make_unique<std::vector<std::vector<float>>>(initial_training_input_data);
         this->training_output_data = std::make_unique<std::vector<float>>(initial_training_output_data);
+        this->test_input_data = std::make_unique<std::vector<std::vector<float>>>();
+        this->test_output_data = std::make_unique<std::vector<float>>();
+        this->validation_input_data = std::make_unique<std::vector<std::vector<float>>>();
+        this->validation_output_data = std::make_unique<std::vector<float>>();
         this->training_data_size = this->training_output_data->size();
         this->param_names = std::make_unique<std::vector<std::string>>();
     }
@@ -231,42 +249,49 @@
 
     // runs mean squared error on the given data set with current parameters
     float Linear_Regression::run_MSE(Dataset ds) {
-        if(ds == Dataset::TRAINING){
-            float loss_accum = 0;
-            std::vector<float> current_inferences = {};
+        std::vector<std::vector<float>> feature_data;
+        std::vector<float> label_data;
+        int data_size;
 
-            //gather current inferences
-            for(std::vector<float> input_datum : *(this->training_input_data)){
-                current_inferences.push_back(this->inference(input_datum));
-            }
-            
-            //run through and accumulate MSE loss
-            for(int i = 0; i < this->training_data_size; i++){
-                float squared_loss = (current_inferences[i] - this->training_output_data->at(i)) * (current_inferences[i] - this->training_output_data->at(i));
-                loss_accum += squared_loss;
-            }
-
-            //return mean
-            return loss_accum / this->training_data_size;
-        }else {
-            float loss_accum = 0;
-            std::vector<float> current_inferences = {};
-
-            //gather current inferences
-            for(std::vector<float> input_datum : *(this->test_input_data)){
-                current_inferences.push_back(this->inference(input_datum));
-            }
-            
-            //run through and accumulate MSE loss
-            for(int i = 0; i < this->test_data_size; i++){
-                float squared_loss = (current_inferences[i] - this->test_output_data->at(i)) * (current_inferences[i] - this->test_output_data->at(i));
-                loss_accum += squared_loss;
-            }
-
-            //return mean
-            return loss_accum / this->test_data_size;
+        switch (ds) {
+            case Dataset::TRAINING:
+                feature_data = *(this->training_input_data);
+                label_data = *(this->training_output_data);
+                data_size = this->training_data_size;
+            break;
+            case Dataset::TEST:
+                feature_data = *(this->test_input_data);
+                label_data = *(this->test_output_data);
+                data_size = this->test_data_size;
+            break;
+            case Dataset::VALIDATION:
+                feature_data = *(this->validation_input_data);
+                label_data = *(this->validation_output_data);
+                data_size = this->validation_data_size;
+            break;
         }
         
+        //quick check to see if theres any data in dataset, throw error if not
+        if(data_size == 0){
+            throw std::invalid_argument("Dataset passed into MSE must not have size of zero.");
+        }
+
+
+        float loss_accum = 0;
+        std::vector<float> current_inferences = {};
+        //gather current inferences
+        for(std::vector<float> input_datum : feature_data){
+            current_inferences.push_back(this->inference(input_datum));
+        }
+        
+        //run through and accumulate MSE loss
+        for(int i = 0; i < data_size; i++){
+            float squared_loss = (current_inferences[i] - label_data[i]) * (current_inferences[i] - label_data[i]);
+            loss_accum += squared_loss;
+        }
+        
+        //return mean
+        return loss_accum / data_size;
     }
 
     
@@ -304,12 +329,16 @@
     void Linear_Regression::train_model(float learning_rate, int epochs, float validation_split){
         //first create training/validation split for this training run by picking randomly from training set
         int val_set_size = validation_split * this->training_data_size;
+        std::cout << "val set size" << val_set_size << std::endl;
+        this->validation_data_size = val_set_size;
         //stuff for generating random index to pull
         std::random_device rd;
         std::mt19937 gen(rd());
 
+        //shuffle training data for val split pull
         std::shuffle(this->training_input_data->begin(), this->training_input_data->end(), gen);
         std::shuffle(this->training_output_data->begin(), this->training_output_data->end(), gen);
+
         for(int i = 0; i < val_set_size; i++){
             //copy over shuffled first few elements
             this->validation_input_data->push_back(this->training_input_data->at(i));
@@ -318,6 +347,7 @@
         //remove from training set
         this->training_input_data->erase(this->training_input_data->begin(), this->training_input_data->begin() + val_set_size);
         this->training_output_data->erase(this->training_output_data->begin(), this->training_output_data->begin() + val_set_size);
+        this->training_data_size -= val_set_size;
 
         std::cout << "Training " << this->model_name << " with learning_rate = " << learning_rate << " for " << epochs << " epochs..." << std::endl << std::endl;
         for(int i = 0; i < epochs; i++){
@@ -325,10 +355,11 @@
             std::shuffle(this->training_input_data->begin(), this->training_input_data->end(), gen);
             std::shuffle(this->training_output_data->begin(), this->training_output_data->end(), gen);
 
+            //print epoch number
             std::cout << "Epoch " << i << ": " << std::endl;
 
             //run gradient descent with given learning rate 
-
+            //log old and new params to print change
             std::vector<float> old_params(*(this->parameters));
             this->gradient_descent(learning_rate);
             std::vector<float> new_params(*(this->parameters));
@@ -342,7 +373,9 @@
                     std::cout << this->param_names->at(i - 1) << ": " << old_params[i] << " => " << new_params[i] << std::endl;
                 }
             }
+            //print training loss and validation loss
             std::cout << "Training Loss: " << this->run_MSE(Dataset::TRAINING) << std::endl;
+            std::cout << "Validation Loss: " << this->run_MSE(Dataset::VALIDATION) << std::endl;
             std::cout << std::endl;
         }
 
@@ -351,8 +384,10 @@
             this->training_input_data->push_back(this->validation_input_data->at(i));
             this->training_output_data->push_back(this->validation_output_data->at(i));
         }
-        this->validation_input_data = {};
-        this->validation_output_data = {};
+        this->training_data_size += val_set_size;
+        this->validation_input_data->clear();
+        this->validation_output_data->clear();
+        this->validation_data_size = 0;
     }
 
     //test model on current test data
