@@ -17,10 +17,16 @@
         //set model name, default to just model if empty name passed in
         this->model_name = model_name == "" ? "Model" : model_name;
 
-        //set num_features, throw error if it's negative/zero.
-        if(num_features < 1){
-            throw std::invalid_argument("num_features must be positive.");
+        //set num_features if its not equal to that of dataset passed in
+        if(num_features != training_data->get_num_features()){
+            throw std::invalid_argument("num_features must match that of passed in training and test data");
         }
+
+        //passed in training and test data sets must have same number of features
+        if(training_data->get_num_features() != test_data->get_num_features()){
+            throw std::invalid_argument("test and training datasets must be of same dimension");
+        }
+
         this->num_features = num_features;
 
         //initialize datasets, validation to null until we need it
@@ -41,10 +47,16 @@
         //set model name, default to just model if empty name passed in
         this->model_name = model_name == "" ? "Model" : model_name;
 
-        //set num_features, throw error if it's negative/zero.
-        if(num_features < 1){
-            throw std::invalid_argument("num_features must be positive.");
+        //set num_features if its not equal to that of dataset passed in
+        if(num_features != training_data->get_num_features()){
+            throw std::invalid_argument("num_features must match that of passed in training and test data");
         }
+
+        //passed in training and test data sets must have same number of features
+        if(training_data->get_num_features() != test_data->get_num_features()){
+            throw std::invalid_argument("test and training datasets must be of same dimension");
+        }
+
         this->num_features = num_features;
 
         //initialize datasets, validation to null until we need it
