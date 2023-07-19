@@ -7,6 +7,7 @@
 #include <iostream>
 #include <fstream>
 
+#include "Utilities.h"
 #include "Dataset.h"
 
 //basic constructor just takes in raw data and stores it in instance
@@ -69,23 +70,20 @@ Dataset::Dataset(std::string filename, std::vector<std::string> feature_columns,
     }
 
     std::string current_line;
-    //parse column names from first line
-    std::vector<std::string> column_names;
+    //parse column names from first line and trim them
     std::getline(csv, current_line);
-
-
-    std::size_t index;
-    while((index = current_line.find(",")) != std::string::npos){
-        column_names.push_back(current_line.substr(0, index));
-        current_line.erase(0, index + 1);
-    } 
-    column_names.push_back(current_line);
+    std::vector<std::string> column_names = Utilities::tokenize(current_line);
+    for(int i = 0; i < column_names.size(); i++){
+        column_names[i] = Utilities::trim(column_names[i]);
+        std::cout << column_names[i] << " " << column_names[i].size() << std::endl;
+    }
 
     //create and populatre array with order of columns to pull from csv according to feature and label names specified in input
     std::vector<int> feature_pull_order;
     int label_col_index;
     for(int i = 0; i < num_features; i++){
         //iterator of elemenet, if its .end(), feature not found, throw error
+        std::cout << feature_columns[i] << " " << feature_columns[i].size() << std::endl;
         auto it = std::find(column_names.begin(), column_names.end(), feature_columns[i]);
         if(it == column_names.end()){
             throw std::invalid_argument("Specified column to pull not found in specified CSV.");
@@ -99,15 +97,12 @@ Dataset::Dataset(std::string filename, std::vector<std::string> feature_columns,
         throw std::invalid_argument("Specified column to pull not found in specified CSV.");
     }
     label_col_index = it - column_names.begin();
-    //go through csv, tokenize line, set data arrays according to order we made earlier
+    //go through csv, tokenize and trim line, set data arrays according to order we made earlier
     while(std::getline(csv, current_line)){
-        std::vector<std::string> tokens;
-        std::size_t index;
-        while((index = current_line.find(",")) != std::string::npos){
-            tokens.push_back(current_line.substr(0, index));
-            current_line.erase(0, index + 1);
-        } 
-        tokens.push_back(current_line);
+        std::vector<std::string> tokens = Utilities::tokenize(current_line);
+        for(int i = 0; i < tokens.size(); i++){
+            tokens[i] = Utilities::trim(tokens[i]);
+        }
         //check tokens array is of proper length,. throw error if not
         if(tokens.size() != column_names.size()){
             throw std::invalid_argument("CSV doesn't have uniform number of entries in each row.");
