@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <random>
 #include <memory>
+#include <iostream>
 
 #include "Dataset.h"
 
@@ -26,6 +27,8 @@ Dataset::Dataset(std::vector<std::vector<float>> feature_data, std::vector<std::
         }
     }
     
+    this->num_features = feature_data[0].size();
+
     //check if feature name array passed in is either empty, or proper size.
     if(feature_names.size() == 0){
         std::vector<std::string> temp = {};
@@ -43,7 +46,6 @@ Dataset::Dataset(std::vector<std::vector<float>> feature_data, std::vector<std::
     this->feature_data = std::make_unique<std::vector<std::vector<float>>>(feature_data);
     this->label_data = std::make_unique<std::vector<float>>(label_data);
     this->dataset_size = this->feature_data->size();
-    this->num_features = this->feature_data->at(0).size();
 }
 
 //getters and setters
@@ -106,7 +108,7 @@ void Dataset::remove_data_pair(int index){
     }
 
     this->feature_data->erase(this->feature_data->begin() + index);
-    this->label_data->erase(this->label_data->erase(this->label_data->begin() + index));
+    this->label_data->erase(this->label_data->begin() + index);
     this->dataset_size--;
 }
 

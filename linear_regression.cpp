@@ -11,7 +11,6 @@
     //default constructor, params default to 0
     // @param model_name: name of the model. pass in empty string for it to default to 'model'.
     // @param num_features: number of features in model. must be positive integer.
-    // @param feature_names: names of differnet features. leave blank to just default to indices.
     // @param training_data: Dataset object to be used as training data
     // @param test_data: Dataset object to be used as test data
     Linear_Regression::Linear_Regression(std::string model_name, int num_features, std::unique_ptr<Dataset> training_data, std::unique_ptr<Dataset> test_data){
@@ -35,7 +34,6 @@
     //params constructor, params are passed in
     // @param model_name: name of the model. pass in empty string for it to default to 'model'.
     // @param num_features: number of features in model. must be positive integer.
-    // @param feature_names: names of differnet features. leave blank to just default to indices.
     // @param training_data: Dataset object to be used as training data
     // @param test_data: Dataset object to be used as test data
     // @param initial_parameteres: initial parameters for model to use. bias is first element
@@ -161,13 +159,20 @@
         //shuffle training data before val split
         this->training_data->shuffle_dataset();
 
-        //pull data to create validation dataset with
-        std::vector<std::vector<float>> validation_feature_data(this->training_data->get_feature_data().end() - val_set_size, this->training_data->get_feature_data().end());
-        std::vector<float> validation_label_data(this->training_data->get_label_data().end() - val_set_size, this->training_data->get_label_data().end());
-        this->validation_data = std::make_unique<Dataset>(Dataset(validation_feature_data, {}, validation_label_data));
+        //pull data to create validation dataset with, if val set size is greater than zero
+        if(val_set_size > 0){
+            std::vector<std::vector<float>> validation_feature_data;
+            std::vector<float> validation_label_data;
+            for(int i = this->training_data->get_dataset_size() - val_set_size; i < this->training_data->get_dataset_size(); i++){
+                validation_feature_data.push_back(this->training_data->get_feature_data()[i]);
+                validation_label_data.push_back(this->training_data->get_label_data()[i]);
+            }
+            this->validation_data = std::make_unique<Dataset>(Dataset(validation_feature_data, {}, validation_label_data));
+        }
 
+        int initial_training_data_size = this->training_data->get_dataset_size();
         //remove validation data from training set
-        for(int i = this->training_data->get_dataset_size() - 1; i >= this->training_data->get_dataset_size() - this->validation_data->get_dataset_size(); i--){
+        for(int i = this->training_data->get_dataset_size() - 1; i >= initial_training_data_size - val_set_size; i--){
             this->training_data->remove_data_pair(i);
         }
 
@@ -192,13 +197,18 @@
             }
             //print training loss and validation loss
             std::cout << "Training Loss: " << this->run_MSE(Dataset_Type::TRAINING) << std::endl;
-            std::cout << "Validation Loss: " << this->run_MSE(Dataset_Type::VALIDATION) << std::endl;
+            //only print thsi lin if tehres a validation set
+            if(val_set_size > 0){
+                std::cout << "Validation Loss: " << this->run_MSE(Dataset_Type::VALIDATION) << std::endl;
+            }
             std::cout << std::endl;
         }
 
-        //put validation data back into training and wipe it
-        this->training_data->add_data_pairs(this->validation_data->get_feature_data(), this->validation_data->get_label_data());
-        this->validation_data.reset();
+        //put validation data back into training and wipe it, if theres a validation data swet
+        if(val_set_size > 0){
+            this->training_data->add_data_pairs(this->validation_data->get_feature_data(), this->validation_data->get_label_data());
+            this->validation_data.reset();
+        }
     }
 
     //test model on current test data
