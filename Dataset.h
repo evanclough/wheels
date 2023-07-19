@@ -12,8 +12,12 @@ class Dataset {
         int dataset_size, num_features;
     public:
 
-        //constructor
+        //constructors
+        //from direct data
         Dataset(std::vector<std::vector<float>> feature_data, std::vector<std::string> feature_names, std::vector<float> label_data);
+
+        //from csv with specified feature and label columns
+        Dataset(std::string filename, std::vector<std::string> feature_columns, std::string label_column);
 
         //getters and setters
         std::vector<std::vector<float>> get_feature_data();
