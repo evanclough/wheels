@@ -8,7 +8,7 @@
 #include "Dataset.h"
 
 //basic constructor just takes in raw data and stores it in instance
-Dataset::Dataset(std::vector<std::vector<float>> feature_data, std::vector<float> label_data) {
+Dataset::Dataset(std::vector<std::vector<float>> feature_data, std::vector<std::string> feature_names, std::vector<float> label_data) {
     //first check if number of feature and label entries are same, throw error if not
     if(feature_data.size() != label_data.size()){
         throw std::invalid_argument("feature and label sets must be same size.");
@@ -26,6 +26,20 @@ Dataset::Dataset(std::vector<std::vector<float>> feature_data, std::vector<float
         }
     }
     
+    //check if feature name array passed in is either empty, or proper size.
+    if(feature_names.size() == 0){
+        std::vector<std::string> temp = {};
+        this->feature_names = std::make_unique<std::vector<std::string>>(temp);
+        for(int i = 0; i < this->num_features; i++){
+            this->feature_names->push_back(std::to_string(i));
+        }   
+    }else if(feature_names.size() == this->num_features){
+        this->feature_names = std::make_unique<std::vector<std::string>>(feature_names);
+    }else{
+        throw std::invalid_argument("feature_names array must be either empty or appropriate size according to num_features");
+    }
+
+
     this->feature_data = std::make_unique<std::vector<std::vector<float>>>(feature_data);
     this->label_data = std::make_unique<std::vector<float>>(label_data);
     this->dataset_size = this->feature_data->size();
@@ -35,6 +49,10 @@ Dataset::Dataset(std::vector<std::vector<float>> feature_data, std::vector<float
 //getters and setters
 std::vector<std::vector<float>> Dataset::get_feature_data(){
     return *(this->feature_data);
+}
+
+std::vector<std::string> Dataset::get_feature_names(){
+    return *(this->feature_names);
 }
 
 std::vector<float> Dataset::get_label_data(){

@@ -14,7 +14,7 @@
     // @param feature_names: names of differnet features. leave blank to just default to indices.
     // @param training_data: Dataset object to be used as training data
     // @param test_data: Dataset object to be used as test data
-    Linear_Regression::Linear_Regression(std::string model_name, int num_features, std::vector<std::string> feature_names, std::unique_ptr<Dataset> training_data, std::unique_ptr<Dataset> test_data){
+    Linear_Regression::Linear_Regression(std::string model_name, int num_features, std::unique_ptr<Dataset> training_data, std::unique_ptr<Dataset> test_data){
         //set model name, default to just model if empty name passed in
         this->model_name = model_name == "" ? "Model" : model_name;
 
@@ -23,19 +23,6 @@
             throw std::invalid_argument("num_features must be positive.");
         }
         this->num_features = num_features;
-
-        //set feature names. if blank default to indices. if not proper length throw error
-        if(feature_names.size() == 0){
-            std::vector<std::string> temp = {};
-            this->feature_names = std::make_unique<std::vector<std::string>>(temp);
-            for(int i = 0; i < this->num_features; i++){
-                this->feature_names->push_back(std::to_string(i));
-            }   
-        }else if(feature_names.size() == this->num_features){
-            this->feature_names = std::make_unique<std::vector<std::string>>(feature_names);
-        }else{
-            throw std::invalid_argument("feature_names array must be either empty or appropriate size according to num_features");
-        }
 
         //initialize datasets, validation to null until we need it
         this->training_data = std::move(training_data);
@@ -52,7 +39,7 @@
     // @param training_data: Dataset object to be used as training data
     // @param test_data: Dataset object to be used as test data
     // @param initial_parameteres: initial parameters for model to use. bias is first element
-    Linear_Regression::Linear_Regression(std::string model_name, int num_features, std::vector<std::string> feature_names, std::unique_ptr<Dataset> training_data, std::unique_ptr<Dataset> test_data, std::vector<float> initial_parameters){
+    Linear_Regression::Linear_Regression(std::string model_name, int num_features, std::unique_ptr<Dataset> training_data, std::unique_ptr<Dataset> test_data, std::vector<float> initial_parameters){
         //set model name, default to just model if empty name passed in
         this->model_name = model_name == "" ? "Model" : model_name;
 
@@ -61,19 +48,6 @@
             throw std::invalid_argument("num_features must be positive.");
         }
         this->num_features = num_features;
-
-        //set feature names. if blank default to indices. if not proper length throw error
-        if(feature_names.size() == 0){
-            std::vector<std::string> temp = {};
-            this->feature_names = std::make_unique<std::vector<std::string>>(temp);
-            for(int i = 0; i < this->num_features; i++){
-                this->feature_names->push_back(std::to_string(i));
-            }   
-        }else if(feature_names.size() == this->num_features){
-            this->feature_names = std::make_unique<std::vector<std::string>>(feature_names);
-        }else{
-            throw std::invalid_argument("feature_names array must be either empty or appropriate size according to num_features");
-        }
 
         //initialize datasets, validation to null until we need it
         this->training_data = std::move(training_data);
@@ -190,7 +164,7 @@
         //pull data to create validation dataset with
         std::vector<std::vector<float>> validation_feature_data(this->training_data->get_feature_data().end() - val_set_size, this->training_data->get_feature_data().end());
         std::vector<float> validation_label_data(this->training_data->get_label_data().end() - val_set_size, this->training_data->get_label_data().end());
-        this->validation_data = std::make_unique<Dataset>(Dataset(validation_feature_data, validation_label_data));
+        this->validation_data = std::make_unique<Dataset>(Dataset(validation_feature_data, {}, validation_label_data));
 
         //remove validation data from training set
         for(int i = this->training_data->get_dataset_size() - 1; i >= this->training_data->get_dataset_size() - this->validation_data->get_dataset_size(); i--){
@@ -214,7 +188,7 @@
             //print changes in parameters for each epoch
             std::cout << "Bias: " << old_params[0] << " => "  << new_params[0] << std::endl;
             for(int i = 1; i < this->num_features + 1; i++){
-                std::cout << this->feature_names->at(i - 1) << ": " << old_params[i] << " => " << new_params[i] << std::endl;
+                std::cout << this->training_data->get_feature_names()[i - 1] << ": " << old_params[i] << " => " << new_params[i] << std::endl;
             }
             //print training loss and validation loss
             std::cout << "Training Loss: " << this->run_MSE(Dataset_Type::TRAINING) << std::endl;
@@ -240,6 +214,6 @@
         std::cout << "Bias: " << this->parameters->at(0) << std::endl;
         //then print parameters
         for(int i = 1; i < num_features + 1; i++){
-            std::cout << this->feature_names->at(i - 1) << ": " << this->parameters->at(i) << std::endl;
+            std::cout << this->training_data->get_feature_names()[i - 1] << ": " << this->parameters->at(i) << std::endl;
         }
     }

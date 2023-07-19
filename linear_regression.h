@@ -15,16 +15,14 @@ class Linear_Regression {
         std::string model_name;
         std::unique_ptr<std::vector<float>> parameters;
         std::unique_ptr<Dataset> validation_data;
-        std::unique_ptr<std::vector<std::string>> feature_names; // if left empty, no names
-
     public:
         //expose these publicly to allow esiting of datasets
         std::unique_ptr<Dataset> training_data;
         std::unique_ptr<Dataset> test_data;
 
         //constructors. one with initial contstrucors and one without
-        Linear_Regression(std::string model_name, int num_features, std::vector<std::string> feature_names, std::unique_ptr<Dataset> training_data, std::unique_ptr<Dataset> test_data);
-        Linear_Regression(std::string model_name, int num_features, std::vector<std::string> feature_names, std::unique_ptr<Dataset> training_data, std::unique_ptr<Dataset> test_data, std::vector<float> initial_parameters);
+        Linear_Regression(std::string model_name, int num_features, std::unique_ptr<Dataset> training_data, std::unique_ptr<Dataset> test_data);
+        Linear_Regression(std::string model_name, int num_features, std::unique_ptr<Dataset> training_data, std::unique_ptr<Dataset> test_data, std::vector<float> initial_parameters);
         //assorted utility functions
 
         //makes inference on input with the current parameters

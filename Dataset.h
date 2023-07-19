@@ -7,15 +7,17 @@
 class Dataset {
     private:
         std::unique_ptr<std::vector<std::vector<float>>> feature_data;
+        std::unique_ptr<std::vector<std::string>> feature_names;
         std::unique_ptr<std::vector<float>> label_data;
         int dataset_size, num_features;
     public:
 
         //constructor
-        Dataset(std::vector<std::vector<float>> feature_data, std::vector<float> label_data);
+        Dataset(std::vector<std::vector<float>> feature_data, std::vector<std::string> feature_names, std::vector<float> label_data);
 
         //getters and setters
         std::vector<std::vector<float>> get_feature_data();
+        std::vector<std::string> get_feature_names();
         std::vector<float> get_label_data();
         int get_dataset_size();
         int get_num_features();
