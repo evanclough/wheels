@@ -1,5 +1,5 @@
 # wheels
-A C++ library with basic neural network functionality from the ground up to teach myself the fundamentals. "Re-inventing the wheel".
+A C++ library with basic neural network and linear regression functionality from the ground up to teach myself the fundamentals. "Re-inventing the wheel". Most of the features are inspired by the Google Machine Learning Crash Course
 
 ## Usage
 
