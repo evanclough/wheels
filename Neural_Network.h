@@ -16,5 +16,5 @@ class Neural_Network {
         Neural_Network(std::string model_name, std::unique_ptr<std::vector<Layer>> layers);
 
         //runs neural network with a set of input data and returns output
-        std::vector<float> inference(std::vector<float> input);
+        std::vector<float> inference(std::vector<float> input, Activation_Function activation);
 }; 
