@@ -1,6 +1,7 @@
 #include "Layer.h"
 #include <cmath>
 #include <stdexcept>
+#include <iostream>
 
 //basic constructor initializes layer with blank nodes of given size
 Layer::Layer(int size){
@@ -46,7 +47,6 @@ std::vector<float> Layer::evaluate(std::vector<float> input, Activation_Function
         }
         output.push_back(accum);
     }
-
     //apply activation function
     for(int i = 0; i < output.size(); i++){
         switch(activation){
@@ -60,9 +60,14 @@ std::vector<float> Layer::evaluate(std::vector<float> input, Activation_Function
                 output[i] = 1 / (1 + std::pow(2.71828, -output[i]));
             break;
         }
-
     }
 
+    /*
+    for(int i = 0; i < output.size(); i++){
+        std::cout << output[i] << " ";
+    }
+    std::cout << std::endl;
+    */
     return output;
 }
 

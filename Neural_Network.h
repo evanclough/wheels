@@ -7,11 +7,11 @@
 
 
 class Neural_Network {
-    public:
+    private:
         int num_layers, num_features;
         std::string model_name;
         std::unique_ptr<std::vector<Layer>> layers;
-    private:
+    public:
         //default constructor
         Neural_Network(std::string model_name, std::unique_ptr<std::vector<Layer>> layers);
 

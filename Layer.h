@@ -1,6 +1,7 @@
 //hthe neural network class allows for the creation of layers to be used by the neural network
 #include <vector>
 #include <memory>
+#include <iostream>
 
 enum Activation_Function {
     RELU, 
