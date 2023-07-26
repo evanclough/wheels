@@ -26,3 +26,18 @@ std::vector<float> Neural_Network::inference(std::vector<float> input, Activatio
     }
     return temp;
 }
+
+//runs backpropogation on network given feature and label vectors
+void Neural_Network::backprop(std::vector<float> feature, std::vector<float> labels, Activation_Function activation){
+    ;
+}
+
+//trains network with a given training dataset, learning rate, number of epochs, and validation split
+void Neural_Network::train_network(Dataset training_data, float learning_rate, int epochs, float validation_split){
+    ;
+}
+
+//tests network on given test data set and returns error
+void Neural_Network::test_network(Dataset test_data){
+    ;
+}

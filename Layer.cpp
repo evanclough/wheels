@@ -61,13 +61,6 @@ std::vector<float> Layer::evaluate(std::vector<float> input, Activation_Function
             break;
         }
     }
-
-    /*
-    for(int i = 0; i < output.size(); i++){
-        std::cout << output[i] << " ";
-    }
-    std::cout << std::endl;
-    */
     return output;
 }
 
