@@ -27,6 +27,11 @@ std::vector<float> Neural_Network::inference(std::vector<float> input, Activatio
     return temp;
 }
 
+//runs MSE loss on given dataset
+std::vector<float> Neural_Network::run_MSE(std::unique_ptr<Dataset> data){
+    return {};
+}
+
 //runs backpropogation on network given feature and label vectors
 void Neural_Network::backprop(std::vector<float> feature, std::vector<float> labels, Activation_Function activation){
     ;
@@ -34,49 +39,70 @@ void Neural_Network::backprop(std::vector<float> feature, std::vector<float> lab
 
 //trains network with a given training dataset, learning rate, number of epochs, and validation split
 //pretty mucht he same as the linear regression training function with some small changes
-void Neural_Network::train_network(Dataset training_data, float learning_rate, int epochs, float validation_split){
+void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float learning_rate, int epochs, float validation_split){
     //first set size of validation training set
-    int val_set_size = validation_split * training_data.get_dataset_size();
+    int val_set_size = validation_split * training_data->get_dataset_size();
 
     //shuffle training dataset before split to make sure it's random
-    training_data.shuffle_dataset();
+    training_data->shuffle_dataset();
 
     //if there's an allocated validation split, create it
-    Dataset* validation_data;
+    std::unique_ptr<Dataset> validation_data;
     if(val_set_size > 0){
         std::vector<std::vector<float>> validation_feature_data;
         std::vector<std::vector<float>> validation_label_data;
-        for(int i = training_data.get_dataset_size() - val_set_size; i < training_data.get_dataset_size(); i++){
-            validation_feature_data.push_back(training_data.get_feature_data()[i]);
-            validation_label_data.push_back(training_data.get_label_data()[i]);
+        for(int i = training_data->get_dataset_size() - val_set_size; i < training_data->get_dataset_size(); i++){
+            validation_feature_data.push_back(training_data->get_feature_data()[i]);
+            validation_label_data.push_back(training_data->get_label_data()[i]);
         }
-        validation_data = new Dataset(validation_feature_data, {}, validation_label_data);
+        validation_data = std::make_unique<Dataset>(Dataset(validation_feature_data, {}, validation_label_data));
     }
 
-    int initial_training_data_size = training_data.get_dataset_size();
+    int initial_training_data_size = training_data->get_dataset_size();
     //remove validation data from training set
-    for(int i = training_data.get_dataset_size() - 1; i >= initial_training_data_size - val_set_size; i--){
-        training_data.remove_data_pair(i);
+    for(int i = training_data->get_dataset_size() - 1; i >= initial_training_data_size - val_set_size; i--){
+        training_data->remove_data_pair(i);
     }
 
     std::cout << "Training " << this->model_name << " with learning_rate = " << learning_rate << " for " << epochs << " epochs..." << std::endl << std::endl;
     for(int i = 0; i < epochs; i++){
         //shuffle training data before each epoch
-        training_data.shuffle_dataset();
+        training_data->shuffle_dataset();
 
         //print epoch number
         std::cout << "Epoch " << i << ": " << std::endl;
 
         //run backpropagation with each feature/value pair in training dataset
-        std::vector<std::vector<float>> feature_data = training_data.get_feature_data();
-        std::vector<std::vector<float>> label_data = training_data.get_label_data();
-        for(int j = 0; j < training_data.get_dataset_size(); j++){
+        std::vector<std::vector<float>> feature_data = training_data->get_feature_data();
+        std::vector<std::vector<float>> label_data = training_data->get_label_data();
+        for(int j = 0; j < training_data->get_dataset_size(); j++){
             this->backprop(feature_data[j], label_data[j], Activation_Function::SIGMOID);
         }
+        //print loss
+        std::cout << "Training Loss:";
+        std::vector<float> training_loss = this->run_MSE(std::move(training_data));
+        for(int j = 0; j < training_loss.size(); j++){
+            std::cout << " " << training_loss[j] << " " ;
+        }
+        std::cout << std::endl;
+
+        //same for validation if there is any
+        std::cout << "Validation Loss:";
+        std::vector<float> validation_loss = this->run_MSE(std::move(validation_data));
+        for(int j = 0; j < validation_loss.size(); j++){
+            std::cout << " " << validation_loss[j] << " " ;
+        }
+        std::cout << std::endl;
     }
 }
 
 //tests network on given test data set and returns error
-void Neural_Network::test_network(Dataset test_data){
-    ;
+void Neural_Network::test_network(std::unique_ptr<Dataset> test_data){
+    std::cout << "Testing " << this->model_name << "..." << std::endl;
+    std::vector<float> test_loss = this->run_MSE(std::move(test_data));
+    std::cout << "Test Loss:";
+    for(int i = 0; i < test_loss.size(); i++){
+        std::cout << " " << test_loss[i] << " ";
+    }
+    std::cout << std::endl;
 }
