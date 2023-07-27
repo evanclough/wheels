@@ -4,7 +4,9 @@
 #include <iostream>
 
 //basic constructor initializes layer with blank nodes of given size
-Layer::Layer(int size){
+Layer::Layer(int size, Activation_Function activation){
+    this->activation = activation;
+
     //if size is less than 1, throw error
     if(size < 1){
         throw std::invalid_argument("Layer must have size of at least 1.");
@@ -30,7 +32,7 @@ int Layer::get_size(){
 }
 
 //evaluates layer, given input and activation function
-std::vector<float> Layer::evaluate(std::vector<float> input, Activation_Function activation){
+std::vector<float> Layer::evaluate(std::vector<float> input){
     //check if input and layer have matching dimensions, throw error if not
     if(input.size() != this->nodes->at(0).weights.size()){
         throw std::invalid_argument("Dimensions of input array and weight array must match");
@@ -49,7 +51,7 @@ std::vector<float> Layer::evaluate(std::vector<float> input, Activation_Function
     }
     //apply activation function
     for(int i = 0; i < output.size(); i++){
-        switch(activation){
+        switch(this->activation){
             case RELU:
                 output[i] = output[i] < 0 ? 0 : output[i];
             break;

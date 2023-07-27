@@ -18,11 +18,12 @@ struct Node {
 class Layer {
     private:
         int size;
+        Activation_Function activation;
         //a list of nodes, each with a list of weights, and a bias, to be trated as a tuple
         std::unique_ptr<std::vector<Node>> nodes; 
     public:
         //basic constructor takes in layer size
-        Layer(int size);
+        Layer(int size, Activation_Function activation);
 
         //getters and setters
         int get_size();
@@ -37,6 +38,6 @@ class Layer {
         void set_default(int size);
 
         //evalutates layer with given input and an activation function
-        std::vector<float> evaluate(std::vector<float> input, Activation_Function activation);
+        std::vector<float> evaluate(std::vector<float> input);
 }; 
 

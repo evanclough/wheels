@@ -19,10 +19,10 @@ Neural_Network::Neural_Network(std::string model_name, std::unique_ptr<std::vect
 }
 
 //runs neural network with given input data and an activation function
-std::vector<float> Neural_Network::inference(std::vector<float> input, Activation_Function activation){
+std::vector<float> Neural_Network::inference(std::vector<float> input){
     std::vector<float> temp = input;
     for(int i = 1; i < this->num_layers; i++){
-        temp = this->layers->at(i).evaluate(temp, activation);
+        temp = this->layers->at(i).evaluate(temp);
     }
     return temp;
 }
@@ -33,7 +33,7 @@ std::vector<float> Neural_Network::run_MSE(std::unique_ptr<Dataset> data){
     std::vector<std::vector<float>> label_data = data->get_label_data();
     std::vector<std::vector<float>> predicted;
     for(int i = 0; i < data->get_dataset_size(); i++){
-        predicted.push_back(this->inference(feature_data[i], Activation_Function::SIGMOID));
+        predicted.push_back(this->inference(feature_data[i]));
     }
     std::vector<float> loss_accum(data->get_num_labels(), 0);
     for(int i = 0; i < data->get_dataset_size(); i++){
@@ -48,7 +48,7 @@ std::vector<float> Neural_Network::run_MSE(std::unique_ptr<Dataset> data){
 }
 
 //runs backpropogation on network given feature and label vectors
-void Neural_Network::backprop(std::vector<float> feature, std::vector<float> labels, Activation_Function activation){
+void Neural_Network::backprop(std::vector<float> feature, std::vector<float> labels){
     ;
 }
 
@@ -91,7 +91,7 @@ void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float
         std::vector<std::vector<float>> feature_data = training_data->get_feature_data();
         std::vector<std::vector<float>> label_data = training_data->get_label_data();
         for(int j = 0; j < training_data->get_dataset_size(); j++){
-            this->backprop(feature_data[j], label_data[j], Activation_Function::SIGMOID);
+            this->backprop(feature_data[j], label_data[j]);
         }
         //print loss
         std::cout << "Training Loss:";
