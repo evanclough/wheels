@@ -29,7 +29,22 @@ std::vector<float> Neural_Network::inference(std::vector<float> input, Activatio
 
 //runs MSE loss on given dataset
 std::vector<float> Neural_Network::run_MSE(std::unique_ptr<Dataset> data){
-    return {};
+    std::vector<std::vector<float>> feature_data = data->get_feature_data();
+    std::vector<std::vector<float>> label_data = data->get_label_data();
+    std::vector<std::vector<float>> predicted;
+    for(int i = 0; i < data->get_dataset_size(); i++){
+        predicted.push_back(this->inference(feature_data[i], Activation_Function::SIGMOID));
+    }
+    std::vector<float> loss_accum(data->get_num_labels(), 0);
+    for(int i = 0; i < data->get_dataset_size(); i++){
+        for(int j = 0; j < data->get_num_labels(); j++){
+            loss_accum[j] += (predicted[i][j] - label_data[i][j]) * (predicted[i][j] - label_data[i][j]);
+        }
+    }
+    for(int i = 0; i < data->get_num_labels(); i++){
+        loss_accum[i] /= data->get_dataset_size();
+    }
+    return loss_accum;
 }
 
 //runs backpropogation on network given feature and label vectors
