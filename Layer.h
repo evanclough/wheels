@@ -27,6 +27,7 @@ class Layer {
 
         //getters and setters
         int get_size();
+        std::vector<Node> get_nodes();
 
         //sets weight arrays of all nodes to a given size and constant val
         void set_weights(int size, float weight);

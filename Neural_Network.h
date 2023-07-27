@@ -29,4 +29,10 @@ class Neural_Network {
 
         //tests network on given test data set and returns error
         void test_network(std::unique_ptr<Dataset> test_data);
+
+        //print network with weights and biases in terminal
+        void print_network();
+
+        //print activations of network on given input
+        void print_activated(std::vector<float> input);
 }; 

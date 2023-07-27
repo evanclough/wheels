@@ -121,3 +121,39 @@ void Neural_Network::test_network(std::unique_ptr<Dataset> test_data){
     }
     std::cout << std::endl;
 }
+
+void Neural_Network::print_network(){
+    //print input layer
+    for(int i = 0; i < this->layers->at(0).get_size(); i++){
+        std::cout << " 0 " << "\t";
+    }
+    std::cout << std::endl;
+    //print hidden layers as vectors of weights and biases
+    for(int i = 1; i < this->num_layers; i++){
+        std::vector<Node> nodes = this->layers->at(i).get_nodes();
+        for(int j = 0; j < this->layers->at(i).get_size(); j++){
+            std::cout << "[";
+            for(int k = 0; k < nodes[j].weights.size(); k++){
+                std::cout << nodes[j].weights[k] << (k == nodes[i].weights.size() - 1 ? "": ", "); 
+            }
+            std::cout << "], " << nodes[j].bias << "\t";
+        }
+    }
+}
+
+//prints activations of network on given input
+void Neural_Network::print_activated(std::vector<float> input){
+    //first print inputs
+    for(int i = 0; i < input.size(); i++){
+        std::cout << input[i] << "\t";
+    }
+    std::cout << std::endl;
+    //go through network, activate, and print activation
+    std::vector<float> temp(input);
+    for(int i = 1; i < this->layers->size(); i++){
+        temp = this->layers->at(i).evaluate(temp);
+        for(int j = 0; j < temp.size(); j++){
+            std::cout << temp[j] << "\t";
+        }
+    }
+}
