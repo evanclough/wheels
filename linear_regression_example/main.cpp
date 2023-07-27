@@ -6,10 +6,10 @@
 int main() {
     //first initialize our training dataset, we'll do it from the the my_data csv
     //we're going to want to capture apples and bananas as our feature columns, and oranges as our label column.
-    std::unique_ptr<Dataset> training_ds = std::make_unique<Dataset>(Dataset("fruit_data.csv", {"apples", "bananas"}, "oranges"));
+    std::unique_ptr<Dataset> training_ds = std::make_unique<Dataset>(Dataset("fruit_data.csv", {"apples", "bananas"}, {"oranges"}));
 
     //then initialize our test dataset, we're going to do it directly in code.
-    std::unique_ptr<Dataset> test_ds = std::make_unique<Dataset>(Dataset(std::vector<std::vector<float>>({{1, 2}}), {"apples", "bananas"},  std::vector<float>({5})));
+    std::unique_ptr<Dataset> test_ds = std::make_unique<Dataset>(Dataset(std::vector<std::vector<float>>({{1, 2}}), {"apples", "bananas"},  std::vector<std::vector<float>>({{5}})));
 
     //then we can initialize our model wtih both of our datasets
     Linear_Regression my_model("Fruits", 2, std::move(training_ds), std::move(test_ds));

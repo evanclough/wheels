@@ -17,6 +17,11 @@
         //set model name, default to just model if empty name passed in
         this->model_name = model_name == "" ? "Model" : model_name;
 
+        //if either dataset has label data dim of greater than 1, throw error
+        if(training_data->get_num_labels() > 1 || test_data->get_num_labels() > 1){
+            throw std::invalid_argument("Datasets must have label dimension of 1 for linear regression.");
+        }
+
         //set num_features if its not equal to that of dataset passed in
         if(num_features != training_data->get_num_features()){
             throw std::invalid_argument("num_features must match that of passed in training and test data");
@@ -90,7 +95,7 @@
     float Linear_Regression::run_MSE(Dataset_Type ds) {
         //set dataset variable 
         std::vector<std::vector<float>> feature_data;
-        std::vector<float> label_data;
+        std::vector<std::vector<float>> label_data;
         int dataset_size;
         switch (ds) {
             case Dataset_Type::TRAINING:
@@ -124,7 +129,7 @@
         
         //run through and accumulate MSE loss
         for(int i = 0; i < dataset_size; i++){
-            float squared_loss = (current_inferences[i] - label_data[i]) * (current_inferences[i] - label_data[i]);
+            float squared_loss = (current_inferences[i] - label_data[i][0]) * (current_inferences[i] - label_data[i][0]);
             loss_accum += squared_loss;
         }
         
@@ -153,9 +158,9 @@
             float loss_accum = 0;
             for(int j = 0; j < this->training_data->get_dataset_size(); j++){
                 if(i != 0){//for weights
-                    loss_accum += (predicted_values[j] - this->training_data->get_label_data()[j]) * this->training_data->get_feature_data()[j][i - 1];
+                    loss_accum += (predicted_values[j] - this->training_data->get_label_data()[j][0]) * this->training_data->get_feature_data()[j][i - 1];
                 }else{//for bias
-                    loss_accum += predicted_values[j] - this->training_data->get_label_data()[j];
+                    loss_accum += predicted_values[j] - this->training_data->get_label_data()[j][0];
                 }
             }
 
@@ -174,7 +179,7 @@
         //pull data to create validation dataset with, if val set size is greater than zero
         if(val_set_size > 0){
             std::vector<std::vector<float>> validation_feature_data;
-            std::vector<float> validation_label_data;
+            std::vector<std::vector<float>> validation_label_data;
             for(int i = this->training_data->get_dataset_size() - val_set_size; i < this->training_data->get_dataset_size(); i++){
                 validation_feature_data.push_back(this->training_data->get_feature_data()[i]);
                 validation_label_data.push_back(this->training_data->get_label_data()[i]);
