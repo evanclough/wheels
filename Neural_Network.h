@@ -30,6 +30,12 @@ class Neural_Network {
         //default constructor
         Neural_Network(std::string model_name, std::unique_ptr<std::vector<Layer>> layers);
 
+        //sets given weight
+        void set_weight(int layer, int j, int k, float weight);
+
+        // sets given bias
+        void set_bias(int layer, int j, float bias);
+
         //runs neural network with a set of input data and returns output
         std::vector<float> inference(std::vector<float> input);
 
@@ -43,7 +49,7 @@ class Neural_Network {
         std::vector<float> run_MSE(std::unique_ptr<Dataset> data);
 
         //runs backpropogation on network given feature and label vectors
-        void backprop(std::vector<float> feature, std::vector<float> label, float learning_rate);
+        void gradient_descent(std::vector<std::vector<float>> features, std::vector<std::vector<float>> labels, float learning_rate);
         
         //derivative of a given activation function
         float activation_derivative(float input, Activation_Function activation);

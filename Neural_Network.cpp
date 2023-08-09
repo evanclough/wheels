@@ -1,5 +1,6 @@
 #include "Neural_Network.h"
 #include <stdexcept>
+#include <math.h>
 
 //basic constructor takes a model name and a layer array to create network
 Neural_Network::Neural_Network(std::string model_name, std::unique_ptr<std::vector<Layer>> layers){
@@ -16,6 +17,23 @@ Neural_Network::Neural_Network(std::string model_name, std::unique_ptr<std::vect
         this->layers->at(i).set_default(this->layers->at(i - 1).get_size());
     }
     this->model_name = model_name == "" ? "Model" : model_name;
+}
+//sets given weight
+void Neural_Network::set_weight(int layer, int j, int k, float weight){
+    //quick check of passed in layer
+    if(layer < 1 || layer >= this->num_layers){
+        throw std::invalid_argument("please enter valid layer to set the weight of,");
+    }
+    this->layers->at(layer).set_weight(j, k, weight);
+}
+
+// sets given bias
+void Neural_Network::set_bias(int layer, int j, float bias){
+    //quick check of passed in layer
+    if(layer < 1 || layer >= this->num_layers){
+        throw std::invalid_argument("please enter valid layer to set the bias of,");
+    }
+    this->layers->at(layer).set_bias(j, bias);
 }
 
 //runs neural network with given input data and an activation function
@@ -71,28 +89,59 @@ std::vector<float> Neural_Network::run_MSE(std::unique_ptr<Dataset> data){
 
 //runs backpropogation on network given feature and label vectors and a learning rate
 //naive implementation with complexity of o(L!)
-void Neural_Network::backprop(std::vector<float> feature, std::vector<float> label, float learning_rate){
-    //fetch activations and z values for whole network
-    this->temp_activations = this->activations(feature);
-    this->temp_z_values = this->z_values(feature);
+void Neural_Network::gradient_descent(std::vector<std::vector<float>> features, std::vector<std::vector<float>> labels, float learning_rate){
 
-    //for each weight and bias in network, subtract the learning rate times the derivative of the cost function, MSE, with respect to the given weight or bias.
-    for(int i = this->layers->size() - 1; i >= 0; i--){
+    //for each training example in dataset, for each weight and bias in network, subtract the learning rate times the derivative of the cost function, MSE, with respect to the given weight or bias.
+    std::vector<std::vector<std::vector<float>>> weights_temp;
+    std::vector<std::vector<float>> biases_temp;
+
+
+
+    for(int i = 0; i < this->num_layers; i++){
+        weights_temp.push_back({});
+        biases_temp.push_back({});
         for(int j = 0; j < this->layers->at(i).get_size(); j++){
-            this->layers->at(i).set_bias(j, this->layers->at(i) .get_nodes()[j].bias - learning_rate * pd_bias(feature, label, i, j));
-            for(int k = 0; k < this->layers->at(i).get_nodes()[j].weights.size(); j++){
-                this->layers->at(i).set_weight(i, j, this->layers->at(i).get_nodes()[j].weights[k] - learning_rate * this->pd_weight(feature, label, i, j, k));
+            weights_temp[i].push_back({});
+            biases_temp[j].push_back(0);
+            for(int k = 0; k < this->layers->at(i).get_nodes()[j].weights.size(); k++){
+                weights_temp[i][j].push_back(0);
             }
         }
     }
+    
+    for(int example = 0; example < labels.size(); example++){
+        //fetch activations and z values for whole network
+        this->temp_activations = this->activations(features[example]);
+        this->temp_z_values = this->z_values(features[example]);
+        for(int i = this->layers->size() - 1; i >= 0; i--){
+            for(int j = 0; j < this->layers->at(i).get_size(); j++){
+                biases_temp[i][j] += (1.0 / labels.size()) * this->pd_bias(features[example], labels[example], i, j);
+                for(int k = 0; k < this->layers->at(i).get_nodes()[j].weights.size(); j++){
+                    weights_temp[i][j][k] += (1.0 / labels.size()) * this->pd_weight(features[example], labels[example], i, j, k);
+                }
+            }
+        }
+        //reset temp activations and z values array
+        this->temp_activations = {};
+        this->temp_z_values = {};
+    }
 
-    //reset temp activations and z values array
-    this->temp_activations = {};
-    this->temp_z_values = {};
+    //adjust previous weights according to average of gradient of training examples
+
+        for(int i = this->layers->size() - 1; i >= 0; i--){
+            for(int j = 0; j < this->layers->at(i).get_size(); j++){
+                this->layers->at(i).set_bias(j, this->layers->at(i) .get_nodes()[j].bias - learning_rate * biases_temp[i][j]);
+                for(int k = 0; k < this->layers->at(i).get_nodes()[j].weights.size(); j++){
+                    this->layers->at(i).set_weight(i, j, this->layers->at(i).get_nodes()[j].weights[k] - learning_rate * weights_temp[i][j][k]);
+                }
+            }
+        }
+
+    
 }
 
 //derivative of the current activation function of the network
-float activation_derivative(float input, Activation_Function activation){
+float Neural_Network::activation_derivative(float input, Activation_Function activation){
     switch(activation){
         case SIGMOID:
             return ((1 / (1 + std::pow(2.71828, -input)))) * (1 - ((1 / (1 + std::pow(2.71828, -input)))));
@@ -187,6 +236,8 @@ void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float
     //shuffle training dataset before split to make sure it's random
     training_data->shuffle_dataset();
 
+    
+
     //if there's an allocated validation split, create it
     std::unique_ptr<Dataset> validation_data;
     if(val_set_size > 0){
@@ -216,9 +267,7 @@ void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float
         //run backpropagation with each feature/value pair in training dataset
         std::vector<std::vector<float>> feature_data = training_data->get_feature_data();
         std::vector<std::vector<float>> label_data = training_data->get_label_data();
-        for(int j = 0; j < training_data->get_dataset_size(); j++){
-            this->backprop(feature_data[j], label_data[j], learning_rate);
-        }
+        this->gradient_descent(feature_data, label_data, learning_rate);
         //print loss
         std::cout << "Training Loss:";
         std::vector<float> training_loss = this->run_MSE(std::move(training_data));

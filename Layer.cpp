@@ -35,6 +35,10 @@ Activation_Function Layer::get_activation(){
     return this->activation;
 }
 
+std::vector<Node> Layer::get_nodes(){
+    return *(this->nodes);
+}
+
 //evaluates layer, given input and activation function
 std::vector<float> Layer::evaluate(std::vector<float> input){
     //check if input and layer have matching dimensions, throw error if not
@@ -88,6 +92,7 @@ std::vector<float> Layer::evaluate_without_activation(std::vector<float> input){
         }
         output.push_back(accum);
     }
+    return output;
 }
 
 //sets given weight to given value
