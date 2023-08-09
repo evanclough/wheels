@@ -31,6 +31,10 @@ int Layer::get_size(){
     return this->size;
 }
 
+Activation_Function Layer::get_activation(){
+    return this->activation;
+}
+
 //evaluates layer, given input and activation function
 std::vector<float> Layer::evaluate(std::vector<float> input){
     //check if input and layer have matching dimensions, throw error if not
@@ -66,11 +70,41 @@ std::vector<float> Layer::evaluate(std::vector<float> input){
     return output;
 }
 
+//evaluates layer with no activation
+std::vector<float> Layer::evaluate_without_activation(std::vector<float> input){
+     //check if input and layer have matching dimensions, throw error if not
+    if(input.size() != this->nodes->at(0).weights.size()){
+        throw std::invalid_argument("Dimensions of input array and weight array must match");
+    }
+
+    //output array
+    std::vector<float> output;
+
+    for(int i = 0; i < this->size; i++){
+        //start with just bias
+        float accum = this->nodes->at(i).bias;
+        for(int j = 0; j < this->nodes->at(0).weights.size(); j++){
+            accum += this->nodes->at(i).weights[j] * input[j];
+        }
+        output.push_back(accum);
+    }
+}
+
+//sets given weight to given value
+void Layer::set_weight(int i, int j, float weight){
+    this->nodes->at(i).weights[j] = weight;
+}
+
 //sets weight arrays of all nodes to a given size and constant val
 void Layer::set_weights(int size, float weight){
     for(int i = 0; i < this->size; i++){
         this->nodes->at(i).weights = std::vector<float>(size, weight);
     }
+}
+
+//sets given bias to given value
+void Layer::set_bias(int i,float bias){
+    this->nodes->at(i).bias = bias;
 }
 
 //sets bieases ofa ll nodes to a given val
