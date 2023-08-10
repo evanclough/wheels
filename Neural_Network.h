@@ -46,7 +46,7 @@ class Neural_Network {
         std::vector<std::vector<float>> z_values(std::vector<float> input);
 
         //runs MSE loss on given dataset
-        std::vector<float> run_MSE(std::unique_ptr<Dataset> data);
+        std::vector<float> run_MSE(std::vector<std::vector<float>> feature_data, std::vector<std::vector<float>> label_data);
 
         //runs backpropogation on network given feature and label vectors
         void gradient_descent(std::vector<std::vector<float>> features, std::vector<std::vector<float>> labels, float learning_rate);

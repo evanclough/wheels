@@ -55,7 +55,7 @@ Dataset::Dataset(std::vector<std::vector<float>> feature_data, std::vector<std::
 
     this->feature_data = std::make_unique<std::vector<std::vector<float>>>(feature_data);
     this->label_data = std::make_unique<std::vector<std::vector<float>>>(label_data);
-    this->dataset_size = this->feature_data->size();
+    this->dataset_size = feature_data.size();
 }
 
 Dataset::Dataset(std::string filename, std::vector<std::string> feature_columns, std::vector<std::string> label_columns){
@@ -141,7 +141,7 @@ Dataset::Dataset(std::string filename, std::vector<std::string> feature_columns,
     this->feature_names = std::make_unique<std::vector<std::string>>(feature_columns);
     this->feature_data = std::make_unique<std::vector<std::vector<float>>>(feature_data);
     this->label_data = std::make_unique<std::vector<std::vector<float>>>(label_data);
-    this->dataset_size = this->feature_data->size();
+    this->dataset_size = feature_data.size();
 }
 
 //getters and setters
@@ -158,7 +158,7 @@ std::vector<std::vector<float>> Dataset::get_label_data(){
 }
 
 int Dataset::get_dataset_size() {
-    return this->dataset_size;
+    return this->feature_data->size();
 }
 
 int Dataset::get_num_features() {
@@ -236,6 +236,8 @@ std::vector<std::vector<std::vector<float>>> Dataset::zip_data(){
 //todo: make this better
 void Dataset::shuffle_dataset(){
     //first zip up features and labels
+
+    int original_dataset_size = this->dataset_size;
     std::vector<std::vector<std::vector<float>>> zipped_data = this->zip_data();
 
     //initalize random generator we'll be using
@@ -246,7 +248,7 @@ void Dataset::shuffle_dataset(){
     //put back into base arrays
     this->feature_data->clear();
     this->label_data->clear();
-    for(int i = 0; i < this->dataset_size; i++){
+    for(int i = 0; i < original_dataset_size; i++){
         this->add_data_pair(zipped_data[i][0], zipped_data[i][1]);
     }
 }

@@ -68,21 +68,19 @@ std::vector<std::vector<float>> Neural_Network::z_values(std::vector<float> inpu
 }
 
 //runs MSE loss on given dataset
-std::vector<float> Neural_Network::run_MSE(std::unique_ptr<Dataset> data){
-    std::vector<std::vector<float>> feature_data = data->get_feature_data();
-    std::vector<std::vector<float>> label_data = data->get_label_data();
+std::vector<float> Neural_Network::run_MSE(std::vector<std::vector<float>> feature_data, std::vector<std::vector<float>> label_data){
     std::vector<std::vector<float>> predicted;
-    for(int i = 0; i < data->get_dataset_size(); i++){
+    for(int i = 0; i < feature_data.size(); i++){
         predicted.push_back(this->inference(feature_data[i]));
     }
-    std::vector<float> loss_accum(data->get_num_labels(), 0);
-    for(int i = 0; i < data->get_dataset_size(); i++){
-        for(int j = 0; j < data->get_num_labels(); j++){
+    std::vector<float> loss_accum(label_data[0].size(), 0);
+    for(int i = 0; i < feature_data.size(); i++){
+        for(int j = 0; j < label_data[0].size(); j++){
             loss_accum[j] += (predicted[i][j] - label_data[i][j]) * (predicted[i][j] - label_data[i][j]);
         }
     }
-    for(int i = 0; i < data->get_num_labels(); i++){
-        loss_accum[i] /= data->get_dataset_size();
+    for(int i = 0; i < label_data[0].size(); i++){
+        loss_accum[i] /= feature_data.size();
     }
     return loss_accum;
 }
@@ -102,21 +100,22 @@ void Neural_Network::gradient_descent(std::vector<std::vector<float>> features, 
         biases_temp.push_back({});
         for(int j = 0; j < this->layers->at(i).get_size(); j++){
             weights_temp[i].push_back({});
-            biases_temp[j].push_back(0);
+            biases_temp[i].push_back(0);
             for(int k = 0; k < this->layers->at(i).get_nodes()[j].weights.size(); k++){
                 weights_temp[i][j].push_back(0);
             }
         }
     }
     
+
     for(int example = 0; example < labels.size(); example++){
         //fetch activations and z values for whole network
         this->temp_activations = this->activations(features[example]);
         this->temp_z_values = this->z_values(features[example]);
-        for(int i = this->layers->size() - 1; i >= 0; i--){
+        for(int i = this->layers->size() - 1; i > 0; i--){
             for(int j = 0; j < this->layers->at(i).get_size(); j++){
                 biases_temp[i][j] += (1.0 / labels.size()) * this->pd_bias(features[example], labels[example], i, j);
-                for(int k = 0; k < this->layers->at(i).get_nodes()[j].weights.size(); j++){
+                for(int k = 0; k < this->layers->at(i).get_nodes()[j].weights.size(); k++){
                     weights_temp[i][j][k] += (1.0 / labels.size()) * this->pd_weight(features[example], labels[example], i, j, k);
                 }
             }
@@ -131,7 +130,7 @@ void Neural_Network::gradient_descent(std::vector<std::vector<float>> features, 
         for(int i = this->layers->size() - 1; i >= 0; i--){
             for(int j = 0; j < this->layers->at(i).get_size(); j++){
                 this->layers->at(i).set_bias(j, this->layers->at(i) .get_nodes()[j].bias - learning_rate * biases_temp[i][j]);
-                for(int k = 0; k < this->layers->at(i).get_nodes()[j].weights.size(); j++){
+                for(int k = 0; k < this->layers->at(i).get_nodes()[j].weights.size(); k++){
                     this->layers->at(i).set_weight(i, j, this->layers->at(i).get_nodes()[j].weights[k] - learning_rate * weights_temp[i][j][k]);
                 }
             }
@@ -270,7 +269,7 @@ void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float
         this->gradient_descent(feature_data, label_data, learning_rate);
         //print loss
         std::cout << "Training Loss:";
-        std::vector<float> training_loss = this->run_MSE(std::move(training_data));
+        std::vector<float> training_loss = this->run_MSE(feature_data, label_data);
         for(int j = 0; j < training_loss.size(); j++){
             std::cout << " " << training_loss[j] << " " ;
         }
@@ -278,9 +277,13 @@ void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float
 
         //same for validation if there is any
         std::cout << "Validation Loss:";
-        std::vector<float> validation_loss = this->run_MSE(std::move(validation_data));
-        for(int j = 0; j < validation_loss.size(); j++){
-            std::cout << " " << validation_loss[j] << " " ;
+        if(val_set_size == 0){
+            std::cout << " N/A";
+        }else {
+            std::vector<float> validation_loss = this->run_MSE(validation_data->get_feature_data(), validation_data->get_label_data());
+            for(int j = 0; j < validation_loss.size(); j++){
+                std::cout << " " << validation_loss[j] << " " ;
+            }
         }
         std::cout << std::endl;
     }
@@ -289,7 +292,7 @@ void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float
 //tests network on given test data set and returns error
 void Neural_Network::test_network(std::unique_ptr<Dataset> test_data){
     std::cout << "Testing " << this->model_name << "..." << std::endl;
-    std::vector<float> test_loss = this->run_MSE(std::move(test_data));
+    std::vector<float> test_loss = this->run_MSE(test_data->get_feature_data(), test_data->get_label_data());
     std::cout << "Test Loss:";
     for(int i = 0; i < test_loss.size(); i++){
         std::cout << " " << test_loss[i] << " ";
