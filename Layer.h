@@ -24,7 +24,7 @@ class Layer {
     public:
         //basic constructor takes in layer size
         Layer(int size, Activation_Function activation);
-
+        Layer(const Layer& cpy);
         //getters and setters
         int get_size();
         std::vector<Node> get_nodes();

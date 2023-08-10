@@ -3,12 +3,13 @@
 #include <math.h>
 
 //basic constructor takes a model name and a layer array to create network
-Neural_Network::Neural_Network(std::string model_name, std::unique_ptr<std::vector<Layer>> layers){
+Neural_Network::Neural_Network(std::string model_name, std::vector<Layer> layers){
+
+    this->layers = std::make_unique<std::vector<Layer>>(layers);
     //check if layers array has at least two layers, throw error otherwise.
-    if(layers->size() < 2){
+    if(layers.size() < 2){
         throw std::invalid_argument("Layers array must include at least two layers.");
     }
-    this->layers = std::move(layers);
     this->num_layers = this->layers->size();
     this->num_features = this->layers->at(0).get_size();
 
@@ -68,7 +69,7 @@ std::vector<std::vector<float>> Neural_Network::z_values(std::vector<float> inpu
 }
 
 //runs MSE loss on given dataset
-std::vector<float> Neural_Network::run_MSE(std::vector<std::vector<float>> feature_data, std::vector<std::vector<float>> label_data){
+float Neural_Network::run_MSE(std::vector<std::vector<float>> feature_data, std::vector<std::vector<float>> label_data){
     std::vector<std::vector<float>> predicted;
     for(int i = 0; i < feature_data.size(); i++){
         predicted.push_back(this->inference(feature_data[i]));
@@ -82,7 +83,11 @@ std::vector<float> Neural_Network::run_MSE(std::vector<std::vector<float>> featu
     for(int i = 0; i < label_data[0].size(); i++){
         loss_accum[i] /= feature_data.size();
     }
-    return loss_accum;
+    float final_loss_average = 0;
+    for(int i = 0; i < loss_accum.size(); i++){
+        final_loss_average += (loss_accum[i] / loss_accum.size());
+    }
+    return final_loss_average;
 }
 
 //runs backpropogation on network given feature and label vectors and a learning rate
@@ -92,8 +97,6 @@ void Neural_Network::gradient_descent(std::vector<std::vector<float>> features, 
     //for each training example in dataset, for each weight and bias in network, subtract the learning rate times the derivative of the cost function, MSE, with respect to the given weight or bias.
     std::vector<std::vector<std::vector<float>>> weights_temp;
     std::vector<std::vector<float>> biases_temp;
-
-
 
     for(int i = 0; i < this->num_layers; i++){
         weights_temp.push_back({});
@@ -107,7 +110,6 @@ void Neural_Network::gradient_descent(std::vector<std::vector<float>> features, 
         }
     }
     
-
     for(int example = 0; example < labels.size(); example++){
         //fetch activations and z values for whole network
         this->temp_activations = this->activations(features[example]);
@@ -126,17 +128,15 @@ void Neural_Network::gradient_descent(std::vector<std::vector<float>> features, 
     }
 
     //adjust previous weights according to average of gradient of training examples
-
-        for(int i = this->layers->size() - 1; i >= 0; i--){
-            for(int j = 0; j < this->layers->at(i).get_size(); j++){
-                this->layers->at(i).set_bias(j, this->layers->at(i) .get_nodes()[j].bias - learning_rate * biases_temp[i][j]);
-                for(int k = 0; k < this->layers->at(i).get_nodes()[j].weights.size(); k++){
-                    this->layers->at(i).set_weight(i, j, this->layers->at(i).get_nodes()[j].weights[k] - learning_rate * weights_temp[i][j][k]);
-                }
+    for(int i = this->layers->size() - 1; i > 0; i--){
+        for(int j = 0; j < this->layers->at(i).get_size(); j++){
+            this->layers->at(i).set_bias(j, this->layers->at(i).get_nodes()[j].bias - learning_rate * biases_temp[i][j]);
+            for(int k = 0; k < this->layers->at(i).get_nodes()[j].weights.size(); k++){
+                this->layers->at(i).set_weight(j, k, this->layers->at(i).get_nodes()[j].weights[k] - learning_rate * weights_temp[i][j][k]);
             }
         }
+    }
 
-    
 }
 
 //derivative of the current activation function of the network
@@ -229,6 +229,16 @@ float Neural_Network::pd_z_wrt_bias(int bias_layer, int bias_j, int z_layer, int
 //trains network with a given training dataset, learning rate, number of epochs, and validation split
 //pretty mucht he same as the linear regression training function with some small changes
 void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float learning_rate, int epochs, float validation_split){
+    
+    //check dataset dimensions to see if compatible with network
+    if(training_data->get_feature_data()[0].size() != this->layers->at(0).get_size()){
+        throw std::invalid_argument("The feature data size of the passed dataset does not match the size of the input layer of the network being trained.");
+    }
+
+    if(training_data->get_label_data()[0].size() != this->layers->at(this->num_layers - 1).get_size()){
+        throw std::invalid_argument("The label data size of the passed dataset does not match the size of the output layer of the network being trained.");
+    }
+
     //first set size of validation training set
     int val_set_size = validation_split * training_data->get_dataset_size();
 
@@ -263,27 +273,27 @@ void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float
         //print epoch number
         std::cout << "Epoch " << i << ": " << std::endl;
 
+        this->print_network();
+
         //run backpropagation with each feature/value pair in training dataset
         std::vector<std::vector<float>> feature_data = training_data->get_feature_data();
         std::vector<std::vector<float>> label_data = training_data->get_label_data();
         this->gradient_descent(feature_data, label_data, learning_rate);
         //print loss
-        std::cout << "Training Loss:";
-        std::vector<float> training_loss = this->run_MSE(feature_data, label_data);
-        for(int j = 0; j < training_loss.size(); j++){
-            std::cout << " " << training_loss[j] << " " ;
-        }
+        std::cout << "Training Loss: ";
+        float training_loss = this->run_MSE(feature_data, label_data);
+        std::cout << training_loss;
         std::cout << std::endl;
+
+        
 
         //same for validation if there is any
         std::cout << "Validation Loss:";
         if(val_set_size == 0){
             std::cout << " N/A";
         }else {
-            std::vector<float> validation_loss = this->run_MSE(validation_data->get_feature_data(), validation_data->get_label_data());
-            for(int j = 0; j < validation_loss.size(); j++){
-                std::cout << " " << validation_loss[j] << " " ;
-            }
+            float validation_loss = this->run_MSE(validation_data->get_feature_data(), validation_data->get_label_data());
+            std::cout << " " << validation_loss << " " ;
         }
         std::cout << std::endl;
     }
@@ -292,18 +302,14 @@ void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float
 //tests network on given test data set and returns error
 void Neural_Network::test_network(std::unique_ptr<Dataset> test_data){
     std::cout << "Testing " << this->model_name << "..." << std::endl;
-    std::vector<float> test_loss = this->run_MSE(test_data->get_feature_data(), test_data->get_label_data());
-    std::cout << "Test Loss:";
-    for(int i = 0; i < test_loss.size(); i++){
-        std::cout << " " << test_loss[i] << " ";
-    }
-    std::cout << std::endl;
+    float test_loss = this->run_MSE(test_data->get_feature_data(), test_data->get_label_data());
+    std::cout << "Test Loss: " << test_loss << std::endl;
 }
 
 void Neural_Network::print_network(){
     //print input layer
     for(int i = 0; i < this->layers->at(0).get_size(); i++){
-        std::cout << " 0 " << "\t";
+        std::cout << " 0 " << "\t\t";
     }
     std::cout << std::endl;
     //print hidden layers as vectors of weights and biases
@@ -314,8 +320,9 @@ void Neural_Network::print_network(){
             for(int k = 0; k < nodes[j].weights.size(); k++){
                 std::cout << nodes[j].weights[k] << (k == nodes[i].weights.size() - 1 ? "": ", "); 
             }
-            std::cout << "], " << nodes[j].bias << "\t";
+            std::cout << "], " << nodes[j].bias << "\t\t";
         }
+        std::cout << std::endl;
     }
 }
 
