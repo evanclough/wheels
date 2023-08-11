@@ -37,7 +37,7 @@ void Neural_Network::set_bias(int layer, int j, float bias){
     this->layers->at(layer).set_bias(j, bias);
 }
 
-//runs neural network with given input data and an activation function
+//runs neural network with given input data
 std::vector<float> Neural_Network::inference(std::vector<float> input){
     std::vector<float> temp = input;
     for(int i = 1; i < this->num_layers; i++){
@@ -46,7 +46,7 @@ std::vector<float> Neural_Network::inference(std::vector<float> input){
     return temp;
 }
 
-//fetches activations of network on given input
+//fetches matrix of activations of network on given input
 std::vector<std::vector<float>> Neural_Network::activations(std::vector<float> input){
     std::vector<std::vector<float>> accum;
     std::vector<float> temp = input;
@@ -58,7 +58,7 @@ std::vector<std::vector<float>> Neural_Network::activations(std::vector<float> i
     return accum;
 }
 
-//fetches unactivated layers
+//fetches unactivated layers to help with the training function
 std::vector<std::vector<float>> Neural_Network::z_values(std::vector<float> input){
     std::vector<std::vector<float>> activations = this->activations(input);
     std::vector<std::vector<float>> accum = {input};
@@ -91,13 +91,14 @@ float Neural_Network::run_MSE(std::vector<std::vector<float>> feature_data, std:
 }
 
 //runs backpropogation on network given feature and label vectors and a learning rate
-//naive implementation with complexity of o(L!)
+//naive implementation 
 void Neural_Network::gradient_descent(std::vector<std::vector<float>> features, std::vector<std::vector<float>> labels, float learning_rate){
 
     //for each training example in dataset, for each weight and bias in network, subtract the learning rate times the derivative of the cost function, MSE, with respect to the given weight or bias.
     std::vector<std::vector<std::vector<float>>> weights_temp;
     std::vector<std::vector<float>> biases_temp;
 
+    //initialize matrices to store accumulated PD values for different training examples
     for(int i = 0; i < this->num_layers; i++){
         weights_temp.push_back({});
         biases_temp.push_back({});
@@ -273,9 +274,10 @@ void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float
         //print epoch number
         std::cout << "Epoch " << i << ": " << std::endl;
 
+        //print current state of network 
         this->print_network();
 
-        //run backpropagation with each feature/value pair in training dataset
+        //run gradient descent with each feature/value pair in training dataset
         std::vector<std::vector<float>> feature_data = training_data->get_feature_data();
         std::vector<std::vector<float>> label_data = training_data->get_label_data();
         this->gradient_descent(feature_data, label_data, learning_rate);
@@ -306,6 +308,7 @@ void Neural_Network::test_network(std::unique_ptr<Dataset> test_data){
     std::cout << "Test Loss: " << test_loss << std::endl;
 }
 
+//prints current weights and biases of network
 void Neural_Network::print_network(){
     //print input layer
     for(int i = 0; i < this->layers->at(0).get_size(); i++){

@@ -180,6 +180,10 @@ void Dataset::add_data_pair(std::vector<float> features, std::vector<float> labe
         throw std::invalid_argument("Dimension of passed label doesn't match that of dataset.");
     }
 
+    //adjust dataset size accordingly and add new data
+
+    this->dataset_size++;
+
     this->feature_data->push_back(features);
     this->label_data->push_back(labels);
 }
@@ -209,6 +213,10 @@ void Dataset::add_data_pairs(std::vector<std::vector<float>> features, std::vect
     for(int i = 0; i < features.size(); i++){
         this->add_data_pair(features[i], labels[i]);
     }
+
+    //adjust dataset size accordingly
+
+    this->dataset_size += features.size();
 }
 
 //removes feature-label pair given index
@@ -248,6 +256,7 @@ void Dataset::shuffle_dataset(){
     //put back into base arrays
     this->feature_data->clear();
     this->label_data->clear();
+    this->dataset_size = 0;
     for(int i = 0; i < original_dataset_size; i++){
         this->add_data_pair(zipped_data[i][0], zipped_data[i][1]);
     }
