@@ -34,3 +34,5 @@
 #vim stuff
 *swp
 *~
+.gitignore~
+..gitignore.un~
