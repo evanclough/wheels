@@ -68,7 +68,7 @@ class Neural_Network {
         float activation_derivative(float input, Activation_Function activation);
 
         //trains network with a given training dataset, learning rate, number of epochs, and validation split
-        void train_network(std::unique_ptr<Dataset> training_data, float learning_rate, int epochs, float validation_split, Regularization regularization);
+        void train_network(std::unique_ptr<Dataset> training_data, float learning_rate, int epochs, float validation_split, Regularization regularization, int batch_size);
 
         //tests network on given test data set and returns error
         void test_network(std::unique_ptr<Dataset> test_data);

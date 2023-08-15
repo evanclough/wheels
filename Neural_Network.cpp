@@ -259,8 +259,13 @@ float Neural_Network::pd_z_wrt_bias(int bias_layer, int bias_j, int z_layer, int
 
 //trains network with a given training dataset, learning rate, number of epochs, and validation split
 //pretty mucht he same as the linear regression training function with some small changes
-void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float learning_rate, int epochs, float validation_split, Regularization regularization){
+void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float learning_rate, int epochs, float validation_split, Regularization regularization, int batch_size){
     
+    //check to see if batch size at least one
+    if(batch_size < 1){
+	throw std::invalid_argument("paramater batch_size must be at least 1.");
+    }
+
     //check dataset dimensions to see if compatible with network
     if(training_data->get_feature_data()[0].size() != this->layers->at(0).get_size()){
         throw std::invalid_argument("The feature data size of the passed dataset does not match the size of the input layer of the network being trained.");
@@ -310,7 +315,12 @@ void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float
         //run gradient descent with each feature/value pair in training dataset
         std::vector<std::vector<float>> feature_data = training_data->get_feature_data();
         std::vector<std::vector<float>> label_data = training_data->get_label_data();
-        this->gradient_descent(feature_data, label_data, learning_rate, regularization);
+
+	//run gradient descent for each batch
+	for(int j = 0; j < feature_data.size() / batch_size + (feature_data.size() % batch_size != 0); j++){
+		this->gradient_descent(std::vector<std::vector<float>>(feature_data.begin() + j * batch_size, feature_data.begin() + (j + 1) * batch_size), std::vector<std::vector<float>>(label_data.begin() + j * batch_size, label_data.begin() + (j + 1) * batch_size), learning_rate, regularization);
+	}
+
         //print loss
         std::cout << "Training Loss: ";
         float training_loss = this->run_MSE(feature_data, label_data);
