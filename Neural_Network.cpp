@@ -2,6 +2,13 @@
 #include <stdexcept>
 #include <math.h>
 
+//regularization struct constructor allows user to specify desired regularization in train_network
+//call with a regularization type and rate
+Regularization::Regularization(Regularization_Type reg_type, float rate){
+	this->reg_type = reg_type;
+	this->rate = rate;
+}
+
 //basic constructor takes a model name and a layer array to create network
 Neural_Network::Neural_Network(std::string model_name, std::vector<Layer> layers){
 
@@ -92,7 +99,7 @@ float Neural_Network::run_MSE(std::vector<std::vector<float>> feature_data, std:
 
 //runs backpropogation on network given feature and label vectors and a learning rate
 //naive implementation 
-void Neural_Network::gradient_descent(std::vector<std::vector<float>> features, std::vector<std::vector<float>> labels, float learning_rate){
+void Neural_Network::gradient_descent(std::vector<std::vector<float>> features, std::vector<std::vector<float>> labels, float learning_rate, Regularization regularization){
 
     //for each training example in dataset, for each weight and bias in network, subtract the learning rate times the derivative of the cost function, MSE, with respect to the given weight or bias.
     std::vector<std::vector<std::vector<float>>> weights_temp;
@@ -128,11 +135,34 @@ void Neural_Network::gradient_descent(std::vector<std::vector<float>> features, 
         this->temp_z_values = {};
     }
 
+    //adjust weights matrix according to specified regularization
+    switch(regularization.reg_type){
+	case L1:	
+		for(int i = this->layers->size() - 1; i > 0; i--){
+			for(int j = 0; j < this->layers->at(i).get_size(); j++){
+				for(int k = 0; k < this->layers->at(i).get_nodes()[j].weights.size(); k++){
+					weights_temp[i][j][k] += regularization.rate * (this->layers->at(i).get_nodes()[j].weights[k] > 0 ? 1 : -1);
+				}
+			}
+		}
+	break;
+	case L2:
+		for(int i = this->layers->size() - 1; i > 0; i--){
+			for(int j = 0; j < this->layers->at(i).get_size(); j++){
+				for(int k = 0; k < this->layers->at(i).get_nodes()[j].weights.size(); k++){
+					weights_temp[i][j][k] += regularization.rate * this->layers->at(i).get_nodes()[j].weights[k];
+				}
+			}
+		}
+	break;
+    }
+
     //adjust previous weights according to average of gradient of training examples
     for(int i = this->layers->size() - 1; i > 0; i--){
         for(int j = 0; j < this->layers->at(i).get_size(); j++){
             this->layers->at(i).set_bias(j, this->layers->at(i).get_nodes()[j].bias - learning_rate * biases_temp[i][j]);
             for(int k = 0; k < this->layers->at(i).get_nodes()[j].weights.size(); k++){
+
                 this->layers->at(i).set_weight(j, k, this->layers->at(i).get_nodes()[j].weights[k] - learning_rate * weights_temp[i][j][k]);
             }
         }
@@ -229,7 +259,7 @@ float Neural_Network::pd_z_wrt_bias(int bias_layer, int bias_j, int z_layer, int
 
 //trains network with a given training dataset, learning rate, number of epochs, and validation split
 //pretty mucht he same as the linear regression training function with some small changes
-void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float learning_rate, int epochs, float validation_split){
+void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float learning_rate, int epochs, float validation_split, Regularization regularization){
     
     //check dataset dimensions to see if compatible with network
     if(training_data->get_feature_data()[0].size() != this->layers->at(0).get_size()){
@@ -280,7 +310,7 @@ void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float
         //run gradient descent with each feature/value pair in training dataset
         std::vector<std::vector<float>> feature_data = training_data->get_feature_data();
         std::vector<std::vector<float>> label_data = training_data->get_label_data();
-        this->gradient_descent(feature_data, label_data, learning_rate);
+        this->gradient_descent(feature_data, label_data, learning_rate, regularization);
         //print loss
         std::cout << "Training Loss: ";
         float training_loss = this->run_MSE(feature_data, label_data);

@@ -6,6 +6,19 @@
 #include "Layer.h"
 #include "Dataset.h"
 
+//regularization type enum allows user to specify the regularization type that they want
+enum Regularization_Type {
+	L1,
+	L2
+};
+
+//regularization struct must be passed in to train_network function to specify the regularization used in training model 
+struct Regularization {
+	Regularization_Type reg_type;
+	float rate;
+	Regularization(Regularization_Type reg_type, float rate);
+};
+
 class Neural_Network {
     private:
         int num_layers, num_features;
@@ -49,13 +62,13 @@ class Neural_Network {
         float run_MSE(std::vector<std::vector<float>> feature_data, std::vector<std::vector<float>> label_data);
 
         //runs backpropogation on network given feature and label vectors
-        void gradient_descent(std::vector<std::vector<float>> features, std::vector<std::vector<float>> labels, float learning_rate);
+        void gradient_descent(std::vector<std::vector<float>> features, std::vector<std::vector<float>> labels, float learning_rate, Regularization regularization);
         
         //derivative of a given activation function
         float activation_derivative(float input, Activation_Function activation);
 
         //trains network with a given training dataset, learning rate, number of epochs, and validation split
-        void train_network(std::unique_ptr<Dataset> training_data, float learning_rate, int epochs, float validation_split);
+        void train_network(std::unique_ptr<Dataset> training_data, float learning_rate, int epochs, float validation_split, Regularization regularization);
 
         //tests network on given test data set and returns error
         void test_network(std::unique_ptr<Dataset> test_data);
@@ -65,4 +78,4 @@ class Neural_Network {
 
         //print activations of network on given input
         void print_activated(std::vector<float> input);
-}; 
+};

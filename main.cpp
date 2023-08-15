@@ -12,11 +12,10 @@ int main(){
             }
         }
     }
-    std::unique_ptr test_data1 = std::make_unique<Dataset>(Dataset({{5, 5}, {6, 6}}, {} ,{{5, 5}, {6, 6}}));
+    std::unique_ptr<Dataset> test_data1 = std::make_unique<Dataset>(Dataset({{5, 5}, {6, 6}}, {} ,{{5, 5}, {6, 6}}));
     model.test_network(std::move(test_data1));
     std::unique_ptr<Dataset> training_data = std::make_unique<Dataset>(Dataset({{1, 1}, {2, 2}, {4, 4}}, {} ,{{1, 1}, {2, 2}, {4, 4}}));
-    model.train_network(std::move(training_data), 0.001, 100, 0.0);
-    std::unique_ptr test_data = std::make_unique<Dataset>(Dataset({{5, 5}, {6, 6}}, {} ,{{5, 5}, {6, 6}}));
-    model.test_network(std::move(test_data));
-    std::vector<float> res = model.inference({1, 1});
+    model.train_network(std::move(training_data), 0.001, 100, 0.0, Regularization(L2, 0.1));
+    std::unique_ptr<Dataset> test_data2 = std::make_unique<Dataset>(Dataset({{5, 5}, {6, 6}}, {} ,{{5, 5}, {6, 6}}));
+    model.test_network(std::move(test_data2));
 }
