@@ -2,11 +2,35 @@
 #include <stdexcept>
 #include <math.h>
 
+//regularization struct construcgtor allows user to use no regularization and not pass in a rate
+Regularization::Regularization(Regularization_Type reg_type){
+	this->reg_type = reg_type;
+	this->rate = -1;
+}
+
 //regularization struct constructor allows user to specify desired regularization in train_network
 //call with a regularization type and rate
 Regularization::Regularization(Regularization_Type reg_type, float rate){
 	this->reg_type = reg_type;
 	this->rate = rate;
+}
+
+//basic optiimzer strucvt constructor for if you want no optimizer
+//just call it wtih Optimizer_Type
+Optimizer::Optimizer(Optimizer_Type optimizer_type){
+	this->optimizer_type = optimizer_type;
+	this->momentum_rate = -1;
+}
+
+//momentum optimizer struvt constructor for if you want momentum optimizer
+// call it wtih both the type and hte momentunm rate
+Optimizer::Optimizer(Optimizer_Type optimizer_type, float momentum_rate){
+	//check if momentum rate is between zero and one, if not, throw an errror
+	if(momentum_rate < 0 || momentum_rate > 1){
+		throw std::invalid_argument("momentum rate must be between zero and one");
+	}
+	this->optimizer_type = optimizer_type;
+	this->momentum_rate = momentum_rate;
 }
 
 //basic constructor takes a model name and a layer array to create network
@@ -170,6 +194,112 @@ void Neural_Network::gradient_descent(std::vector<std::vector<float>> features, 
 
 }
 
+//runs gradient descent on network with given feature and label data, learning rate, regularization, momentum rate, and previous gradient
+std::vector<std::vector<std::vector<std::vector<float>>>> Neural_Network::grad_descent_with_momentum(std::vector<std::vector<float>> features, std::vector<std::vector<float>> labels, float learning_rate, Regularization regularization, float momentum_rate, std::vector<std::vector<std::vector<std::vector<float>>>> prev_grad){
+
+    //initialize weight and bias gradients 
+    std::vector<std::vector<std::vector<float>>> weights_grad;
+    std::vector<std::vector<float>> biases_grad;
+
+    //initialize prev weight and bias gradients for momentum calculation, 
+    std::vector<std::vector<std::vector<float>>> prev_weights_grad;
+    std::vector<std::vector<float>> prev_biases_grad; 
+
+    //extract previous weight and bias gradients to be used for momentum calculation, first check if passed array is empty to check if this is first iteration
+    //if so, wait to initilaize with other gradient matrices
+    if(prev_grad.size() != 0){
+	prev_weights_grad = prev_grad[0];
+	prev_biases_grad = prev_grad[1][0];
+    }
+
+    //initialize matrices to store accumulated PD values for different training examples
+    for(int i = 0; i < this->num_layers; i++){
+	if(prev_grad.size() == 0){
+		prev_weights_grad.push_back({});
+		prev_biases_grad.push_back({});
+	}
+        weights_grad.push_back({});
+        biases_grad.push_back({});
+        for(int j = 0; j < this->layers->at(i).get_size(); j++){
+	    if(prev_grad.size() == 0){
+		prev_weights_grad[i].push_back({});
+		prev_biases_grad[i].push_back(0);		
+	    }
+            weights_grad[i].push_back({});
+            biases_grad[i].push_back(0);
+            for(int k = 0; k < this->layers->at(i).get_nodes()[j].weights.size(); k++){
+                weights_grad[i][j].push_back(0);
+		if(prev_grad.size() == 0){
+		    prev_weights_grad[i][j].push_back(0);
+		}
+            }
+        }
+    }
+    
+    for(int example = 0; example < labels.size(); example++){
+        //fetch activations and z values for whole network
+        this->temp_activations = this->activations(features[example]);
+        this->temp_z_values = this->z_values(features[example]);
+        for(int i = this->layers->size() - 1; i > 0; i--){
+            for(int j = 0; j < this->layers->at(i).get_size(); j++){
+                biases_grad[i][j] += (1.0 / labels.size()) * this->pd_bias(features[example], labels[example], i, j);
+                for(int k = 0; k < this->layers->at(i).get_nodes()[j].weights.size(); k++){
+                    weights_grad[i][j][k] += (1.0 / labels.size()) * this->pd_weight(features[example], labels[example], i, j, k);
+                }
+            }
+        }
+        //reset temp activations and z values array
+        this->temp_activations = {};
+        this->temp_z_values = {};
+    }
+
+    //adjust weights matrix according to specified regularization
+    switch(regularization.reg_type){
+	    case Regularization_Type::L1:	
+		for(int i = this->layers->size() - 1; i > 0; i--){
+			for(int j = 0; j < this->layers->at(i).get_size(); j++){
+				for(int k = 0; k < this->layers->at(i).get_nodes()[j].weights.size(); k++){
+					weights_grad[i][j][k] += regularization.rate * (this->layers->at(i).get_nodes()[j].weights[k] > 0 ? 1 : -1);
+				}
+			}
+		}
+	break;
+	    case Regularization_Type::L2:
+		for(int i = this->layers->size() - 1; i > 0; i--){
+			for(int j = 0; j < this->layers->at(i).get_size(); j++){
+				for(int k = 0; k < this->layers->at(i).get_nodes()[j].weights.size(); k++){
+					weights_grad[i][j][k] += regularization.rate * this->layers->at(i).get_nodes()[j].weights[k];
+				}
+			}
+		}
+	break;
+    }
+
+    //adjust weights and biases gradients for momentum according to specified monetum rate and previous weight and bias gradients
+    for(int i = this->layers->size() - 1; i > 0; i--){
+	for(int j = 0; j < this->layers->at(i).get_size(); j++){
+	    biases_grad[i][j] += momentum_rate * prev_biases_grad[i][j];
+	    for(int k = 0; k < this->layers->at(i).get_nodes()[j].weights.size(); k++){
+	    	weights_grad[i][j][k] += momentum_rate * prev_weights_grad[i][j][k];
+	    }
+	}
+    }
+
+    //adjust previous weights according to average of gradient of training examples
+    for(int i = this->layers->size() - 1; i > 0; i--){
+        for(int j = 0; j < this->layers->at(i).get_size(); j++){
+            this->layers->at(i).set_bias(j, this->layers->at(i).get_nodes()[j].bias - learning_rate * biases_grad[i][j]);
+            for(int k = 0; k < this->layers->at(i).get_nodes()[j].weights.size(); k++){
+                this->layers->at(i).set_weight(j, k, this->layers->at(i).get_nodes()[j].weights[k] - learning_rate * weights_grad[i][j][k]);
+            }
+        }
+    }
+
+    //return tuple of weight and bias gradients found in this iteration to be used in the next one
+    return {weights_grad, {biases_grad}};
+
+}
+
 //derivative of the current activation function of the network
 float Neural_Network::activation_derivative(float input, Activation_Function activation){
     switch(activation){
@@ -275,6 +405,16 @@ void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float
         throw std::invalid_argument("The label data size of the passed dataset does not match the size of the output layer of the network being trained.");
     }
 
+    //check for appropriate variables being filled in wrt chosen regularization
+    if(regularization.reg_type != Regularization_Type::NONE && regularization.rate == -1){
+	throw std::invalid_argument("to use regularization, you must initialize a regularization rate");
+    }
+
+    //check for appropriate variables being filled in wrt chosen optmizer
+    if(optimizer.optimizer_type == Optimizer_Type::MOMENTUM && optimizer.momentum_rate == -1){
+	throw std::invalid_argument("to use the momentum optimizer, you must intizlise a momentum rate");
+    }
+
     //first set size of validation training set
     int val_set_size = validation_split * training_data->get_dataset_size();
 
@@ -317,10 +457,19 @@ void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float
         //run gradient descent with each feature/value pair in training dataset
         std::vector<std::vector<float>> feature_data = training_data->get_feature_data();
         std::vector<std::vector<float>> label_data = training_data->get_label_data();
-
+	
+	//array to temporarily save previous gradients to be used in momentum training
+	std::vector<std::vector<std::vector<std::vector<float>>>> prev_grad;
 	//run gradient descent for each batch
 	for(int j = 0; j < feature_data.size() / batch_size + (feature_data.size() % batch_size != 0); j++){
-		this->gradient_descent(std::vector<std::vector<float>>(feature_data.begin() + j * batch_size, feature_data.begin() + (j + 1) * batch_size), std::vector<std::vector<float>>(label_data.begin() + j * batch_size, label_data.begin() + (j + 1) * batch_size), learning_rate, regularization);
+		switch(optimizer.optimizer_type){
+			case Optimizer_Type::MOMENTUM:
+				prev_grad = this->grad_descent_with_momentum(std::vector<std::vector<float>>(feature_data.begin() + j * batch_size, feature_data.begin() + (j + 1) * batch_size), std::vector<std::vector<float>>(label_data.begin() + j * batch_size, label_data.begin() + (j + 1) * batch_size), learning_rate, regularization, optimizer.momentum_rate, prev_grad);
+			break;
+			case Optimizer_Type::NONE:
+				this->gradient_descent(std::vector<std::vector<float>>(feature_data.begin() + j * batch_size, feature_data.begin() + (j + 1) * batch_size), std::vector<std::vector<float>>(label_data.begin() + j * batch_size, label_data.begin() + (j + 1) * batch_size), learning_rate, regularization);
+			break;
+		}
 	}
 
         //print loss
