@@ -259,7 +259,7 @@ float Neural_Network::pd_z_wrt_bias(int bias_layer, int bias_j, int z_layer, int
 
 //trains network with a given training dataset, learning rate, number of epochs, and validation split
 //pretty mucht he same as the linear regression training function with some small changes
-void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float learning_rate, int epochs, float validation_split, Regularization regularization, int batch_size){
+void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float learning_rate, int epochs, float validation_split, Regularization regularization, int batch_size, bool print_weights){
     
     //check to see if batch size at least one
     if(batch_size < 1){
@@ -309,8 +309,10 @@ void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float
         //print epoch number
         std::cout << "Epoch " << i << ": " << std::endl;
 
-        //print current state of network 
-        this->print_network();
+        //print current state of network if set to
+	if(print_weights){
+		this->print_network();
+	}
 
         //run gradient descent with each feature/value pair in training dataset
         std::vector<std::vector<float>> feature_data = training_data->get_feature_data();

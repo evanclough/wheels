@@ -6,6 +6,7 @@
 #include <memory>
 #include <iostream>
 #include <fstream>
+#include <iterator>
 
 #include "Utilities.h"
 #include "Dataset.h"
@@ -144,6 +145,82 @@ Dataset::Dataset(std::string filename, std::vector<std::string> feature_columns,
     this->dataset_size = feature_data.size();
 }
 
+
+//constructs dataset from ubyte file, used MNIST data
+Dataset::Dataset(std::string feature_data_filename, std::string label_data_filename){
+	//initialize data vectors
+	std::vector<std::vector<float>> feature_data, label_data;
+
+	//open ubyte files
+	std::ifstream feature_data_file(feature_data_filename, std::ios::binary), label_data_file(label_data_filename, std::ios::binary);
+
+	//check if files successfully opened, if not, throw error
+	if(!feature_data_file.good()){
+		throw std::invalid_argument("feature data file did not successfully open.");
+	}
+
+	if(!label_data_file.good()){
+		throw std::invalid_argument("label data file did not successfully open.");
+	}
+
+	//copy into vectors
+
+	feature_data_file.unsetf(std::ios::skipws);	
+	label_data_file.unsetf(std::ios::skipws);	
+	std::streampos feature_data_file_size, label_data_file_size;
+	
+	feature_data_file.seekg(0, std::ios::end);
+	feature_data_file_size = feature_data_file.tellg();
+	feature_data_file.seekg(0, std::ios::beg);
+
+	label_data_file.seekg(0, std::ios::end);
+	label_data_file_size = label_data_file.tellg();
+	label_data_file.seekg(0, std::ios::beg);
+
+	std::vector<uint8_t> feature_data_bytes, label_data_bytes;
+	feature_data_bytes.reserve(feature_data_file_size);
+	label_data_bytes.reserve(label_data_file_size);
+	
+	feature_data_bytes.insert(feature_data_bytes.begin(), std::istream_iterator<uint8_t>(feature_data_file), std::istream_iterator<uint8_t>());
+	label_data_bytes.insert(label_data_bytes.begin(), std::istream_iterator<uint8_t>(label_data_file), std::istream_iterator<uint8_t>());
+
+
+	//close files
+	feature_data_file.close();
+	label_data_file.close();
+
+	//push image files one by one into feature data array
+	//start at index 16 to skip header
+	//images are 28 by 28 so total size for each feature is 784
+	for(int i = 0; i < (feature_data_bytes.size() - 16) / 784; i++){
+		feature_data.push_back({});
+		for(int j = 0; j < 784; j++){
+			feature_data[i].push_back(feature_data_bytes[16 + (i * 784) + j]);
+		}
+	}
+
+	//create label data as array of onehot vectors with associated digit as the hot number
+	// start at index 8 to skip header
+	for(int i = 0; i < feature_data.size(); i++){
+		std::vector<float> temp(10, 0);
+		temp[label_data_bytes[8 + i]] = 1;
+		label_data.push_back(temp);
+	}
+
+	this->num_features = feature_data[0].size();
+	this->num_labels = label_data[0].size();
+
+	std::vector<std::string> feature_names;
+	for(int i = 0; i < num_features; i++){
+		feature_names.push_back(std::to_string(i));
+	}
+
+	this->feature_names = std::make_unique<std::vector<std::string>>(feature_names);	
+    	this->feature_data = std::make_unique<std::vector<std::vector<float>>>(feature_data);
+    	this->label_data = std::make_unique<std::vector<std::vector<float>>>(label_data);
+	this->dataset_size = feature_data.size();
+}
+
 //getters and setters
 std::vector<std::vector<float>> Dataset::get_feature_data(){
     return *(this->feature_data);
@@ -261,4 +338,5 @@ void Dataset::shuffle_dataset(){
         this->add_data_pair(zipped_data[i][0], zipped_data[i][1]);
     }
 }
+
 
