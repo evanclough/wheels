@@ -11,5 +11,5 @@ int main() {
     	Neural_Network model("My Network", layers);
  
     	//train network
-    	model.train_network(std::move(image_training_data), 0.001, 100, 0.0, Regularization(L2, 0.1), 256, false);
+    	model.train_network(std::move(image_training_data), 0.001, 100, 0.0, Regularization(Regularization_Type::L2, 0.1), 256, false);
 }

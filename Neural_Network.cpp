@@ -137,7 +137,7 @@ void Neural_Network::gradient_descent(std::vector<std::vector<float>> features, 
 
     //adjust weights matrix according to specified regularization
     switch(regularization.reg_type){
-	case L1:	
+	    case Regularization_Type::L1:	
 		for(int i = this->layers->size() - 1; i > 0; i--){
 			for(int j = 0; j < this->layers->at(i).get_size(); j++){
 				for(int k = 0; k < this->layers->at(i).get_nodes()[j].weights.size(); k++){
@@ -146,7 +146,7 @@ void Neural_Network::gradient_descent(std::vector<std::vector<float>> features, 
 			}
 		}
 	break;
-	case L2:
+	    case Regularization_Type::L2:
 		for(int i = this->layers->size() - 1; i > 0; i--){
 			for(int j = 0; j < this->layers->at(i).get_size(); j++){
 				for(int k = 0; k < this->layers->at(i).get_nodes()[j].weights.size(); k++){
@@ -173,13 +173,13 @@ void Neural_Network::gradient_descent(std::vector<std::vector<float>> features, 
 //derivative of the current activation function of the network
 float Neural_Network::activation_derivative(float input, Activation_Function activation){
     switch(activation){
-        case SIGMOID:
+	case Activation_Function::SIGMOID:
             return ((1 / (1 + std::pow(2.71828, -input)))) * (1 - ((1 / (1 + std::pow(2.71828, -input)))));
         break;
-        case TANH:
+	case Activation_Function::TANH:
             return 1 - (std::tanh(input) * std::tanh(input));
         break;
-        case RELU:
+	case Activation_Function::RELU:
             return input < 0 ? 0 : 1;
         break;
         default:
@@ -259,7 +259,7 @@ float Neural_Network::pd_z_wrt_bias(int bias_layer, int bias_j, int z_layer, int
 
 //trains network with a given training dataset, learning rate, number of epochs, and validation split
 //pretty mucht he same as the linear regression training function with some small changes
-void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float learning_rate, int epochs, float validation_split, Regularization regularization, int batch_size, bool print_weights){
+void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float learning_rate, int epochs, float validation_split, Regularization regularization, int batch_size, bool print_weights, Optimizer optimizer){
     
     //check to see if batch size at least one
     if(batch_size < 1){

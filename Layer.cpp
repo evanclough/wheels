@@ -66,13 +66,13 @@ std::vector<float> Layer::evaluate(std::vector<float> input){
     //apply activation function
     for(int i = 0; i < output.size(); i++){
         switch(this->activation){
-            case RELU:
+	    case Activation_Function::RELU:
                 output[i] = output[i] < 0 ? 0 : output[i];
             break;
-            case TANH:
+	    case Activation_Function::TANH:
                 output[i] = std::tanh(output[i]);
             break;
-            case SIGMOID:
+	    case Activation_Function::SIGMOID:
                 output[i] = 1 / (1 + std::pow(2.71828, -output[i]));
             break;
         }

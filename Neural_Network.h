@@ -7,7 +7,7 @@
 #include "Dataset.h"
 
 //regularization type enum allows user to specify the regularization type that they want
-enum Regularization_Type {
+enum class  Regularization_Type {
 	L1,
 	L2
 };
@@ -17,6 +17,14 @@ struct Regularization {
 	Regularization_Type reg_type;
 	float rate;
 	Regularization(Regularization_Type reg_type, float rate);
+};
+
+//optimizer enum to be passed into train_network
+enum class Optimizer {
+	MOMENTUM, 
+	RMS_PROP,
+	ADAM,
+	NONE
 };
 
 class Neural_Network {
@@ -68,7 +76,7 @@ class Neural_Network {
         float activation_derivative(float input, Activation_Function activation);
 
         //trains network with a given training dataset, learning rate, number of epochs, and validation split
-        void train_network(std::unique_ptr<Dataset> training_data, float learning_rate, int epochs, float validation_split, Regularization regularization, int batch_size, bool print_weights);
+        void train_network(std::unique_ptr<Dataset> training_data, float learning_rate, int epochs, float validation_split, Regularization regularization, int batch_size, bool print_weights, Optimizer optimizer);
 
         //tests network on given test data set and returns error
         void test_network(std::unique_ptr<Dataset> test_data);

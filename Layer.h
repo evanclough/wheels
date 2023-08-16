@@ -3,7 +3,7 @@
 #include <memory>
 #include <iostream>
 
-enum Activation_Function {
+enum class Activation_Function {
     RELU, 
     TANH,
     SIGMOID,
