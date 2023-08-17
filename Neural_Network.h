@@ -5,6 +5,7 @@
 #include <memory>
 #include "Layer.h"
 #include "Dataset.h"
+#include "Optimizers.h"
 
 //regularization type enum allows user to specify the regularization type that they want
 enum class  Regularization_Type {
@@ -21,26 +22,6 @@ struct Regularization {
 	Regularization(Regularization_Type reg_type);
 	//constructor for some regularization
 	Regularization(Regularization_Type reg_type, float rate);
-};
-
-//optimizer enum to be passed into train_network
-enum class Optimizer_Type {
-	MOMENTUM, 
-	RMS_PROP,
-	ADAM,
-	NONE
-};
-
-//optimizer struct must be passed into train_Network functio nto specify the regularization used in training model
-struct Optimizer {
-	Optimizer_Type optimizer_type;
-	float momentum_rate, beta, beta1, beta2, epsilon;
-	//comstructor for if you want no optimizer
-	Optimizer(Optimizer_Type optimizer_type);
-	//constructor for optimizers with one param
-	Optimizer(Optimizer_Type optimizer_type, float param);
-	//constructor for adam
-	Optimizer(Optimizer_Type optimizer_type, float beta1, float beta2, float epsilon);
 };
 
 class Neural_Network {
@@ -86,15 +67,14 @@ class Neural_Network {
         float run_MSE(std::vector<std::vector<float>> feature_data, std::vector<std::vector<float>> label_data);
 
         //runs backpropogation on network given feature and label vectors
-        void gradient_descent(std::vector<std::vector<float>> features, std::vector<std::vector<float>> labels, float learning_rate, Regularization regularization);
+        void gradient_descent(std::vector<std::vector<float>> features, std::vector<std::vector<float>> labels, float learning_rate, Regularization regularization, Optimizer* optimizer, std::vector<std::vector<std::vector<std::vector<float>>>> &persistent_values);
        	
-	std::vector<std::vector<std::vector<std::vector<float>>>> grad_descent_with_optimizer(std::vector<std::vector<float>> features, std::vector<std::vector<float>> labels, float learning_rate, Regularization regularization, std::vector<std::vector<std::vector<std::vector<float>>>> prev_values, Optimizer optimizer);
 	
 	//derivative of a given activation function
         float activation_derivative(float input, Activation_Function activation);
 
-        //trains network with a given training dataset, learning rate, number of epochs, and validation split
-        void train_network(std::unique_ptr<Dataset> training_data, float learning_rate, int epochs, float validation_split, Regularization regularization, int batch_size, bool print_weights, Optimizer optimizer);
+        //trains network with a given training dataset, learning rate, number of epochs, and validation split, and optimizer
+        void train_network(std::unique_ptr<Dataset> training_data, float learning_rate, int epochs, float validation_split, Regularization regularization, int batch_size, bool print_state, Optimizer* optimizer);
 
         //tests network on given test data set and returns error
         void test_network(std::unique_ptr<Dataset> test_data);
