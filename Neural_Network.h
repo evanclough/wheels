@@ -6,23 +6,7 @@
 #include "Layer.h"
 #include "Dataset.h"
 #include "Optimizers.h"
-
-//regularization type enum allows user to specify the regularization type that they want
-enum class  Regularization_Type {
-	L1,
-	L2,
-	NONE
-};
-
-//regularization struct must be passed in to train_network function to specify the regularization used in training model 
-struct Regularization {
-	Regularization_Type reg_type;
-	float rate;
-	//constructor for none
-	Regularization(Regularization_Type reg_type);
-	//constructor for some regularization
-	Regularization(Regularization_Type reg_type, float rate);
-};
+#include "Regularization.h"
 
 class Neural_Network {
     private:
@@ -67,14 +51,14 @@ class Neural_Network {
         float run_MSE(std::vector<std::vector<float>> feature_data, std::vector<std::vector<float>> label_data);
 
         //runs backpropogation on network given feature and label vectors
-        void gradient_descent(std::vector<std::vector<float>> features, std::vector<std::vector<float>> labels, float learning_rate, Regularization regularization, Optimizer* optimizer, std::vector<std::vector<std::vector<std::vector<float>>>> &persistent_values);
+        void gradient_descent(std::vector<std::vector<float>> features, std::vector<std::vector<float>> labels, float learning_rate, Regularization* regularization, Optimizer* optimizer, std::vector<std::vector<std::vector<std::vector<float>>>> &persistent_values);
        	
 	
 	//derivative of a given activation function
         float activation_derivative(float input, Activation_Function activation);
 
         //trains network with a given training dataset, learning rate, number of epochs, and validation split, and optimizer
-        void train_network(std::unique_ptr<Dataset> training_data, float learning_rate, int epochs, float validation_split, Regularization regularization, int batch_size, bool print_state, Optimizer* optimizer);
+        void train_network(std::unique_ptr<Dataset> training_data, float learning_rate, int epochs, float validation_split, Regularization* regularization, int batch_size, bool print_state, Optimizer* optimizer);
 
         //tests network on given test data set and returns error
         void test_network(std::unique_ptr<Dataset> test_data);

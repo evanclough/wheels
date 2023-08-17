@@ -2,19 +2,6 @@
 #include <stdexcept>
 #include <math.h>
 
-//regularization struct construcgtor allows user to use no regularization and not pass in a rate
-Regularization::Regularization(Regularization_Type reg_type){
-	this->reg_type = reg_type;
-	this->rate = -1;
-}
-
-//regularization struct constructor allows user to specify desired regularization in train_network
-//call with a regularization type and rate
-Regularization::Regularization(Regularization_Type reg_type, float rate){
-	this->reg_type = reg_type;
-	this->rate = rate;
-}
-
 //basic constructor takes a model name and a layer array to create network
 Neural_Network::Neural_Network(std::string model_name, std::vector<Layer> layers){
 
@@ -105,7 +92,7 @@ float Neural_Network::run_MSE(std::vector<std::vector<float>> feature_data, std:
 }
 
 //gradient descent runs backpropagation on given feature and label set with given learning rate, regularization, and optimizer
-void Neural_Network::gradient_descent(std::vector<std::vector<float>> features, std::vector<std::vector<float>> labels, float learning_rate, Regularization regularization, Optimizer* optimizer, std::vector<std::vector<std::vector<std::vector<float>>>> &persistent_values){
+void Neural_Network::gradient_descent(std::vector<std::vector<float>> features, std::vector<std::vector<float>> labels, float learning_rate, Regularization* regularization, Optimizer* optimizer, std::vector<std::vector<std::vector<std::vector<float>>>> &persistent_values){
     //initialize weight and bias gradient matrices
     std::vector<std::vector<std::vector<float>>> weights_grad;
     std::vector<std::vector<float>> biases_grad;
@@ -146,26 +133,13 @@ void Neural_Network::gradient_descent(std::vector<std::vector<float>> features, 
     }
 
     //adjust weights gradient matrix according to specified regularization
-    switch(regularization.reg_type){
-	    case Regularization_Type::L1:	
             for(int i = this->layers->size() - 1; i > 0; i--){
                 for(int j = 0; j < this->layers->at(i).get_size(); j++){
                     for(int k = 0; k < this->layers->at(i).get_nodes()[j].weights.size(); k++){
-                        weights_grad[i][j][k] += regularization.rate * (this->layers->at(i).get_nodes()[j].weights[k] > 0 ? 1 : -1);
+                        regularization->apply_regularization(weights_grad[i][j][k], this->layers->at(i).get_nodes()[j].weights[k]);
                     }
                 }
             }
-	    break;
-	    case Regularization_Type::L2:
-            for(int i = this->layers->size() - 1; i > 0; i--){
-                for(int j = 0; j < this->layers->at(i).get_size(); j++){
-                    for(int k = 0; k < this->layers->at(i).get_nodes()[j].weights.size(); k++){
-                        weights_grad[i][j][k] += regularization.rate * this->layers->at(i).get_nodes()[j].weights[k];
-                    }
-                }
-            }
-	    break;
-    }
 
     //adjust weights and biases matrices according to specified optimization method
     optimizer->grad_update(weights_grad, biases_grad, persistent_values);
@@ -270,7 +244,7 @@ float Neural_Network::pd_z_wrt_bias(int bias_layer, int bias_j, int z_layer, int
 
 //trains network with a given training dataset, learning rate, number of epochs, validation split, batch size, and optimizer
 //pretty mucht he same as the linear regression training function with some small changes
-void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float learning_rate, int epochs, float validation_split, Regularization regularization, int batch_size, bool print_state, Optimizer* optimizer){
+void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float learning_rate, int epochs, float validation_split, Regularization* regularization, int batch_size, bool print_state, Optimizer* optimizer){
     
     //check to see if batch size at least one
     if(batch_size < 1){
@@ -286,9 +260,14 @@ void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float
         throw std::invalid_argument("The label data size of the passed dataset does not match the size of the output layer of the network being trained.");
     }
 
-    //check for appropriate variables being filled in wrt chosen regularization
-    if(regularization.reg_type != Regularization_Type::NONE && regularization.rate == -1){
-	throw std::invalid_argument("to use regularization, you must initialize a regularization rate");
+    //check if optimizer exists, if not, set to no reg
+    if(regularization == nullptr){
+        regularization = new No_Regularization();
+    }
+
+    //check if optimizer exists, if not, set to no optimization
+    if(optimizer == nullptr){
+        optimizer = new No_Optimization();
     }
 
     //first set size of validation training set

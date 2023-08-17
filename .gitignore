@@ -36,3 +36,6 @@
 *~
 .gitignore~
 ..gitignore.un~
+
+#vscode stuff
+.vscode/settings.json
