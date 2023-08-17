@@ -34,11 +34,11 @@ enum class Optimizer_Type {
 //optimizer struct must be passed into train_Network functio nto specify the regularization used in training model
 struct Optimizer {
 	Optimizer_Type optimizer_type;
-	float momentum_rate;
+	float momentum_rate, beta;
 	//comstructor for if you want no optimizer
 	Optimizer(Optimizer_Type optimizer_type);
-	//constructor for momentum optimizer
-	Optimizer(Optimizer_Type optimizer_type, float momentum_rate);
+	//constructor for optimizers with one param
+	Optimizer(Optimizer_Type optimizer_type, float param);
 };
 
 
@@ -87,7 +87,7 @@ class Neural_Network {
         //runs backpropogation on network given feature and label vectors
         void gradient_descent(std::vector<std::vector<float>> features, std::vector<std::vector<float>> labels, float learning_rate, Regularization regularization);
        	
-	std::vector<std::vector<std::vector<std::vector<float>>>> grad_descent_with_momentum(std::vector<std::vector<float>> features, std::vector<std::vector<float>> labels, float learning_rate, Regularization regularization, float momentum_rate, std::vector<std::vector<std::vector<std::vector<float>>>> prev_grad);
+	std::vector<std::vector<std::vector<std::vector<float>>>> grad_descent_with_optimizer(std::vector<std::vector<float>> features, std::vector<std::vector<float>> labels, float learning_rate, Regularization regularization, std::vector<std::vector<std::vector<std::vector<float>>>> prev_grad, Optimizer optimizer);
 	
 	//derivative of a given activation function
         float activation_derivative(float input, Activation_Function activation);
