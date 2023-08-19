@@ -47,6 +47,11 @@ std::vector<float> Neural_Network::inference(std::vector<float> input){
     return temp;
 }
 
+//gets model name
+std::string Neural_Network::get_model_name(){
+    return this->model_name;
+}
+
 //fetches matrix of activations of network on given input
 std::vector<std::vector<float>> Neural_Network::activations(std::vector<float> input){
     std::vector<std::vector<float>> accum;
@@ -181,7 +186,7 @@ float Neural_Network::activation_derivative(float input, Activation_Function act
     }
 }
 
-std::vector<std::vector<std::vector<std::vector<float>>>> Neural_Network::grads(std::vector<float> feature, std::vector<float> label){
+std::vector<std::vector<std::vector<std::vector<float>>>> Neural_Network::grads(std::vector<float> feature, std::vector<float> label){    
     //initialize and fill in gradient wtih zeroes to start
     std::vector<std::vector<std::vector<float>>> weights_grad;
     std::vector<std::vector<float>> biases_grad;
@@ -313,9 +318,9 @@ void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float
 	for(int j = 0; j < feature_data.size() / batch_size + (feature_data.size() % batch_size != 0); j++){
         //iterators to specify batch to train on
         auto start_feature_it = feature_data.begin() + j * batch_size;
-        auto end_feature_it = feature_data.begin() + (j + 1) * batch_size;
+        auto end_feature_it = ((j + 1) * batch_size  < label_data.size() ? feature_data.begin() + (j + 1) * batch_size : feature_data.end());
         auto start_label_it = label_data.begin() + j * batch_size;
-        auto end_label_it = label_data.begin() + (j + 1) * batch_size;
+        auto end_label_it = ((j + 1) * batch_size  < label_data.size() ? label_data.begin() + (j + 1) * batch_size : label_data.end());
 
         //matrix of persistent values to be used in optimization, initialize with the optimizers respective intiialization method
         std::vector<std::vector<std::vector<std::vector<float>>>> persistent_values;
@@ -330,7 +335,6 @@ void Neural_Network::train_network(std::unique_ptr<Dataset> training_data, float
             }
         }
         optimizer->initialize_persistent_values(persistent_values, this->num_layers, layer_sizes, weights_sizes);
-
         this->gradient_descent(std::vector<std::vector<float>>(start_feature_it, end_feature_it), std::vector<std::vector<float>>(start_label_it, end_label_it), learning_rate, regularization, optimizer, persistent_values);
 	}
 

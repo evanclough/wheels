@@ -28,6 +28,8 @@ class Neural_Network {
         //sets given weight
         void set_weight(int layer, int j, int k, float weight);
 
+        std::string get_model_name();
+
         // sets given bias
         void set_bias(int layer, int j, float bias);
 

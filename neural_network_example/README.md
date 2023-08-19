@@ -1,0 +1,2 @@
+The neural network example holds a benchmark of the performance of the different optimizers on identifying 
+handwritten digits from the MNIST dataset. It can be built with ```..\Utilities.cpp ..\Regularization.cpp ..\Optimizers.cpp ..\Dataset.cpp ..\Layer.cpp ..\Neural_Network.cpp .\main.cpp ```.
