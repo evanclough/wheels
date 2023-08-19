@@ -5,13 +5,13 @@
 int main() {
     	//load in training dataset
 	std::unique_ptr<Dataset> image_training_data = std::make_unique<Dataset>(Dataset("train-images.idx3-ubyte", "train-labels.idx1-ubyte"));
-	std::unique_ptr<Dataset> image_test_data = std::make_unique<Dataset>(Dataset("test-images.idx3-ubyte", "test-labels.idx1-ubyte"));
+	std::unique_ptr<Dataset> image_test_data = std::make_unique<Dataset>(Dataset("t10k-images.idx3-ubyte", "t10k-labels.idx1-ubyte"));
     	//build network which will fit, first layer is 784, then two hidden layers of 64, then output layer of 10 to fit the onehot arrays
     	std::vector<Layer> layers = {Layer(784, Activation_Function::NONE), Layer(64, Activation_Function::SIGMOID), Layer(64, Activation_Function::SIGMOID), Layer(10, Activation_Function::SIGMOID)};
     	Neural_Network model("My Network", layers);
  
     	//train network
-    	model.train_network(std::move(image_training_data), 0.001, 100, 0.0, Regularization(Regularization_Type::L2, 0.2), 256, false, Optimizer(Optimizer_Type::MOMENTUM, 0.2));
+    	model.train_network(std::move(image_training_data), 0.001, 1, 0.0, new L2(0.1), 256, false, new No_Optimization());
 
 	//test accuracy rate of network by running inferences on new image vectors and comparing output to label
 	std::vector<std::vector<float>> test_feature_data = image_test_data->get_feature_data(), test_label_data = image_test_data->get_label_data(), inferences;

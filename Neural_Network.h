@@ -15,7 +15,11 @@ class Neural_Network {
         std::unique_ptr<std::vector<Layer>> layers;
 
         std::vector<std::vector<float>> temp_activations;
+        std::vector<std::vector<float>> temp_activation_derivs;
         std::vector<std::vector<float>> temp_z_values;
+
+        std::vector<std::vector<std::vector<std::vector<float>>>> grads(std::vector<float> feature, std::vector<float> label);
+
 
         //calculates the patial derivative of the cost function of the network with respect to a given weight 
         float pd_weight(std::vector<float> feature, std::vector<float> label, int layer, int j, int k);

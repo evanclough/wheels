@@ -1,6 +1,7 @@
 #include "Neural_Network.h"
 #include <stdexcept>
 #include <math.h>
+#include <limits>
 
 //basic constructor takes a model name and a layer array to create network
 Neural_Network::Neural_Network(std::string model_name, std::vector<Layer> layers){
@@ -117,19 +118,27 @@ void Neural_Network::gradient_descent(std::vector<std::vector<float>> features, 
         //fetch activations and z values for whole network for this example
         this->temp_activations = this->activations(features[data_pair]);
         this->temp_z_values = this->z_values(features[data_pair]);
+        this->temp_activation_derivs = temp_z_values;
+        for(int i = 0; i < temp_activation_derivs.size(); i++){
+            for(int j = 0; j < temp_activation_derivs[i].size(); j++){
+                this->temp_activation_derivs[i][j] = this->activation_derivative(this->temp_activation_derivs[i][j], this->layers->at(i).get_activation());
+            }
+        }
+        std::vector<std::vector<std::vector<std::vector<float>>>> grads = this->grads(features[data_pair], labels[data_pair]);
+
         for(int i = this->layers->size() - 1; i > 0; i--){
             for(int j = 0; j < this->layers->at(i).get_size(); j++){
-		        float pd_bias = this->pd_bias(features[data_pair], labels[data_pair], i, j);
-                biases_grad[i][j] += (1.0 / labels.size()) * pd_bias;
+                biases_grad[i][j] += (1.0 / labels.size()) * grads[1][0][i - 1][j];
                 for(int k = 0; k < this->layers->at(i).get_nodes()[j].weights.size(); k++){
-		            float pd_weight = this->pd_weight(features[data_pair], labels[data_pair], i, j, k);
-                    weights_grad[i][j][k] += (1.0 / labels.size()) * pd_weight; 
+                    weights_grad[i][j][k] += (1.0 / labels.size()) * grads[0][i - 1][j][k]; 
 		        }
             }
         }
+
         //reset temp activations and z values array
         this->temp_activations = {};
         this->temp_z_values = {};
+        this->temp_activation_derivs = {};
     }
 
     //adjust weights gradient matrix according to specified regularization
@@ -171,6 +180,65 @@ float Neural_Network::activation_derivative(float input, Activation_Function act
             return input;
     }
 }
+
+std::vector<std::vector<std::vector<std::vector<float>>>> Neural_Network::grads(std::vector<float> feature, std::vector<float> label){
+    //initialize and fill in gradient wtih zeroes to start
+    std::vector<std::vector<std::vector<float>>> weights_grad;
+    std::vector<std::vector<float>> biases_grad;
+    for(int i = 0; i < this->num_layers - 1; i++){
+        weights_grad.push_back({});
+        biases_grad.push_back({});
+        for(int j = 0; j < this->layers->at(i + 1).get_size(); j++){
+            weights_grad[i].push_back({});
+            biases_grad[i].push_back(0);
+            for(int k = 0; k < this->layers->at(i).get_size(); k++){
+                weights_grad[i][j].push_back(0);
+            }
+        }
+    }
+
+   //final layer to be multiplied by accumulation of previous layers caluclated for each
+    std::vector<float> final_layer;
+    for(int i = 0; i < label.size(); i++){
+        final_layer.push_back(2 * (this->temp_activations[this->num_layers - 1][i] - label[i]) * this->temp_activation_derivs[this->num_layers - 1][i]);
+    }
+
+    for(int i = this->num_layers - 1; i >= 1; i--){
+        //current layer to be used in calculation, initialize it as the initial layer accum for when 
+        //none needs to be done
+            std::vector<float> prev_arr(this->layers->at(i).get_size(), 1);
+            for(int j = i; j < this->num_layers - 1; j++){
+                std::vector<float> new_arr(this->layers->at(j + 1).get_size(), 0);
+                for(int k = 0; k < new_arr.size(); k++){
+                    for(int l = 0; l < prev_arr.size(); l++){
+                        new_arr[k] +=  this->temp_activation_derivs[j + 1][k] * this->layers->at(j + 1).get_nodes()[k].weights[l] * prev_arr[l];//weight * activation derivative * prev_arr value
+                    }
+                }
+                prev_arr = new_arr;
+            }
+        float sum = 0;
+        for(int j = 0; j < prev_arr.size(); j++){
+            sum += prev_arr[j] * final_layer[j];
+
+        }
+
+        sum /= label.size();
+        
+        //set biases
+        for(int j = 0; j < this->layers->at(i).get_size(); j++){
+            biases_grad[i - 1][j] = sum;
+        }
+
+        //set weights for this layer to activation of attached node times the sum we've accumulated
+        for(int j = 0; j < this->layers->at(i - 1).get_size(); j++){
+            for(int k = 0; k < this->layers->at(i).get_size(); k++){
+                weights_grad[i - 1][k][j] = sum * this->temp_activations[i - 1][j];
+            }
+        }
+    }
+    return {weights_grad, {biases_grad}};
+};
+
 
 //calculates the partiaul derivative of a given weight with respect to the cost function. (naive implementation)
 float Neural_Network::pd_weight(std::vector<float> feature, std::vector<float> label,int layer, int j, int k){
