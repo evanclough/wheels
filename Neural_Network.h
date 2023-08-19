@@ -18,20 +18,9 @@ class Neural_Network {
         std::vector<std::vector<float>> temp_activation_derivs;
         std::vector<std::vector<float>> temp_z_values;
 
+        //calculates gradients of biases and weights with respect to cost from a given feature label pair.
         std::vector<std::vector<std::vector<std::vector<float>>>> grads(std::vector<float> feature, std::vector<float> label);
 
-
-        //calculates the patial derivative of the cost function of the network with respect to a given weight 
-        float pd_weight(std::vector<float> feature, std::vector<float> label, int layer, int j, int k);
-
-        //partial derivative of z value with respect to given weihgt, recursive helpyter to pd_weight
-        float pd_z_wrt_weight(int weight_layer, int weight_j, int weight_k, int z_layer, int z_j);
-
-        //calculates the patial derivative of the cost function of the network with respect to a given bias 
-        float pd_bias(std::vector<float> feature, std::vector<float> label, int layer, int j);
-
-        //finds partial derivative of a given z value with respect to a given weight, recursive helpyer to pd_weight
-        float pd_z_wrt_bias(int bias_layer, int bias_j, int z_layer, int z_j);
     public:
         //default constructor
         Neural_Network(std::string model_name, std::vector<Layer> layers);
