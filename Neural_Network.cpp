@@ -186,6 +186,7 @@ float Neural_Network::activation_derivative(float input, Activation_Function act
     }
 }
 
+//grads calculates weight and bias gradients of given feature and label pair
 std::vector<std::vector<std::vector<std::vector<float>>>> Neural_Network::grads(std::vector<float> feature, std::vector<float> label){    
     //initialize and fill in gradient wtih zeroes to start
     std::vector<std::vector<std::vector<float>>> weights_grad;

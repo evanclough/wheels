@@ -226,8 +226,8 @@ Dataset::Dataset(std::string feature_data_filename, std::string label_data_filen
 	}
 
 	this->feature_names = std::make_unique<std::vector<std::string>>(feature_names);	
-    	this->feature_data = std::make_unique<std::vector<std::vector<float>>>(feature_data);
-    	this->label_data = std::make_unique<std::vector<std::vector<float>>>(label_data);
+    this->feature_data = std::make_unique<std::vector<std::vector<float>>>(feature_data);
+    this->label_data = std::make_unique<std::vector<std::vector<float>>>(label_data);
 	this->dataset_size = feature_data.size();
 }
 

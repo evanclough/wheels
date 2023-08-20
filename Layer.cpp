@@ -27,11 +27,14 @@ Layer::Layer(int size, Activation_Function activation){
     this->nodes = std::make_unique<std::vector<Node>>(nodes);
 }
 
+//copy constructor copies
 Layer::Layer(const Layer& cpy){
     this->activation = cpy.activation;
     this->size = cpy.size;
     this->nodes = std::make_unique<std::vector<Node>>(*cpy.nodes);
 }
+
+//getters and setters
 
 int Layer::get_size(){
     return this->size;

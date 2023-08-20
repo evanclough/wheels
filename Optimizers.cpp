@@ -3,6 +3,7 @@
 #include "Optimizers.h"
 #include <stdexcept>
 #include <cmath>
+#include <iostream>
 
 //no optimizatio constructor does nothing
 No_Optimization::No_Optimization(){}
@@ -102,10 +103,10 @@ void RMS_Prop::grad_update(std::vector<std::vector<std::vector<float>>>& weights
     // then also update hte moving average of the gradients with the newly calculated one
     for(int i = 0; i < weights_grad.size(); i++){
 		for(int j = 0; j < weights_grad[i].size(); j++){
-			biases_grad[i][j] /= std::sqrt((this->beta * (*biases_grad_avg)[i][j]) + ((1 - this->beta) * (biases_grad[i][j] * biases_grad[i][j])));			
+			biases_grad[i][j] /= (std::sqrt((this->beta * (*biases_grad_avg)[i][j]) + ((1 - this->beta) * (biases_grad[i][j] * biases_grad[i][j]))) == 0 ? 1e-8 : std::sqrt((this->beta * (*biases_grad_avg)[i][j]) + ((1 - this->beta) * (biases_grad[i][j] * biases_grad[i][j]))));			
             (*biases_grad_avg)[i][j] += (1 - this->beta) * (biases_grad[i][j] * biases_grad[i][j]);
 			for(int k = 0; k < weights_grad[i][j].size(); k++){
-				weights_grad[i][j][k] /= std::sqrt((this->beta * (*weights_grad_avg)[i][j][k]) + ((1 - this->beta) * (weights_grad[i][j][k] * weights_grad[i][j][k])));
+				weights_grad[i][j][k] /= (std::sqrt((this->beta * (*weights_grad_avg)[i][j][k]) + ((1 - this->beta) * (weights_grad[i][j][k] * weights_grad[i][j][k]))) == 0 ? 1e-8 : std::sqrt((this->beta * (*weights_grad_avg)[i][j][k]) + ((1 - this->beta) * (weights_grad[i][j][k] * weights_grad[i][j][k]))));
                 (*weights_grad_avg)[i][j][k] += (1 - this->beta) * (weights_grad[i][j][k] * weights_grad[i][j][k]);
 	    	}
 		}
@@ -165,6 +166,7 @@ void Adam::initialize_persistent_values(std::vector<std::vector<std::vector<std:
         persistent_values.push_back({st_biases});
     }
 }
+
 void Adam::grad_update(std::vector<std::vector<std::vector<float>>>& weights_grad, std::vector<std::vector<float>>& biases_grad, std::vector<std::vector<std::vector<std::vector<float>>>> &persistent_values){
     //pull info from persistent data, which for RMS prop is the moving average of gradients
     std::vector<std::vector<std::vector<float>>>* vt_weights = &persistent_values[0];
