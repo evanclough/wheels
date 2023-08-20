@@ -9,10 +9,6 @@
 
     //constructors
     //default constructor, params default to 0
-    // @param model_name: name of the model. pass in empty string for it to default to 'model'.
-    // @param num_features: number of features in model. must be positive integer.
-    // @param training_data: Dataset object to be used as training data
-    // @param test_data: Dataset object to be used as test data
     Linear_Regression::Linear_Regression(std::string model_name, int num_features, std::unique_ptr<Dataset> training_data, std::unique_ptr<Dataset> test_data){
         //set model name, default to just model if empty name passed in
         this->model_name = model_name == "" ? "Model" : model_name;
@@ -43,11 +39,6 @@
     }
 
     //params constructor, params are passed in
-    // @param model_name: name of the model. pass in empty string for it to default to 'model'.
-    // @param num_features: number of features in model. must be positive integer.
-    // @param training_data: Dataset object to be used as training data
-    // @param test_data: Dataset object to be used as test data
-    // @param initial_parameteres: initial parameters for model to use. bias is first element
     Linear_Regression::Linear_Regression(std::string model_name, int num_features, std::unique_ptr<Dataset> training_data, std::unique_ptr<Dataset> test_data, std::vector<float> initial_parameters){
         //set model name, default to just model if empty name passed in
         this->model_name = model_name == "" ? "Model" : model_name;
