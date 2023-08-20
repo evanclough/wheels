@@ -59,6 +59,7 @@ Dataset::Dataset(std::vector<std::vector<float>> feature_data, std::vector<std::
     this->dataset_size = feature_data.size();
 }
 
+//constructor from CSV
 Dataset::Dataset(std::string filename, std::vector<std::string> feature_columns, std::vector<std::string> label_columns){
     int num_features = feature_columns.size();
     int num_labels = label_columns.size();
@@ -145,6 +146,15 @@ Dataset::Dataset(std::string filename, std::vector<std::string> feature_columns,
     this->dataset_size = feature_data.size();
 }
 
+//copy constructor
+Dataset::Dataset(const Dataset& cpy){
+    this->num_features = cpy.num_features;
+    this->num_labels = cpy.num_labels;
+    this->dataset_size = cpy.dataset_size;
+    this->feature_data = std::make_unique<std::vector<std::vector<float>>>(*(cpy.feature_data));
+    this->feature_names = std::make_unique<std::vector<std::string>>(*(cpy.feature_names));
+    this->label_data = std::make_unique<std::vector<std::vector<float>>>(*(cpy.label_data));
+}
 
 //constructs dataset from ubyte file, used MNIST data
 Dataset::Dataset(std::string feature_data_filename, std::string label_data_filename){

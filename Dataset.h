@@ -25,6 +25,9 @@ class Dataset {
 	    //from ubyte file, for MNIST image data
 	    Dataset(std::string feature_data_filename, std::string label_data_filename);
 
+        //copy constructor
+        Dataset(const Dataset& cpy);
+
         //getters and setters
         std::vector<std::vector<float>> get_feature_data();
         std::vector<std::string> get_feature_names();
